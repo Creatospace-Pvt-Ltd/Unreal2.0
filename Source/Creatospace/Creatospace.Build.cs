@@ -10,7 +10,7 @@ public class Creatospace : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "HTTP", "Json", "OnlineSubsystemEOS", "OnlineSubsystem", "OnlineSubsystemUtils", "GameLiftServerSDK", "VoiceChat", "EOSVoiceChat", "EOSSDK", "EOSShared", "SocketSubsystemEOS", "OneClickEOS" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "ReadyPlayerMe", "VoiceChat", "EOSShared", "SocketSubsystemEOS", "OnlineSubsystemEOS", "EOSSDK", "OnlineSubsystem", "OnlineSubsystemUtils", "EOSVoiceChat", "OneClickEOS" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "ReadyPlayerMe", "SocketSubsystemEOS", "OnlineSubsystemEOS", "EOSSDK", "OnlineSubsystem", "OnlineSubsystemUtils", "EOSVoiceChat", "OneClickEOS", "VoiceChat", "EOSShared" });
 
 		// Dependencies Web Browser
 		PrivateDependencyModuleNames.AddRange(new string[] { "WebBrowserWidget", "WebBrowser", "UMG" });
