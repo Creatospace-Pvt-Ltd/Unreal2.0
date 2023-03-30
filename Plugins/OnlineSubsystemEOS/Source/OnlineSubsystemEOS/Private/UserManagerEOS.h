@@ -276,15 +276,21 @@ public:
 	virtual void GetLinkedAccountAuthToken(int32 LocalUserNum, const FOnGetLinkedAccountAuthTokenCompleteDelegate& Delegate) const override;
 
 	//Custom Functions
-	void EOSLoginWithDeviceID();
+	void EOSLoginWithDeviceID(FString id);
 	void DeleteDeviceID();
-	void CreateDeviceID();
+	void CreateDeviceID(FString id);
+
+	FString PUIDtoSTring(EOS_ProductUserId puid);
+	EOS_ProductUserId StringtoPUID(FString id);
 
 	void CreateEOSVoiceRoomToken(FString clientID);
-	void JoinVoiceRoom(EOS_ProductUserId id, const char* url, const char* token);
+	void JoinVoiceRoom(FString url, FString token);
 	void GetRoomToken(EOS_ProductUserId id, uint32_t query, const char* url);
 	
 	EOS_ProductUserId PUID;
+	FString PUIDString;
+	const char* VoiceToken;
+	const char* BaseUrl;
 	
 	// ~IOnlineIdentity Interface
 	ELoginStatus::Type GetLoginStatus(const FUniqueNetIdEOS& UserId) const;

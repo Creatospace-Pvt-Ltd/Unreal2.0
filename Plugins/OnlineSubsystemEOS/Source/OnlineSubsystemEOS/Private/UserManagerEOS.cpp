@@ -396,9 +396,33 @@ struct FAuthCredentials :
 
 
 
+FString FUserManagerEOS::PUIDtoSTring(EOS_ProductUserId puid) {
+
+	char outbuffer = *("abc");
+	int32_t InOutBufferLength = EOS_PRODUCTUSERID_MAX_LENGTH + 1;
+	EOS_EResult result = EOS_ProductUserId_ToString(puid, &outbuffer, &InOutBufferLength);
+
+	if (result == EOS_EResult::EOS_Success) {
+		UE_LOG(LogTemp, Warning, TEXT("puid to string SUCCESS!"));
+		
+		//const ANSICHAR* Str = UTF8_TO_TCHAR(*outbuffer);
+		FString out = &outbuffer;
+		UE_LOG(LogTemp, Warning, TEXT("puid to string: %s"), &outbuffer);
+		return out;
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("Result Code: %s"), UTF8_TO_TCHAR(EOS_EResult_ToString(result)));
+		return "";
+	}
+}
+
+EOS_ProductUserId FUserManagerEOS::StringtoPUID(FString id) {
+	char* puid = TCHAR_TO_UTF8(*id);
+	return EOS_ProductUserId_FromString(puid);
+}
+
 void FUserManagerEOS::CreateEOSVoiceRoomToken(FString clientID)
 {
-
 	
 	UE_LOG(LogTemp, Warning, TEXT("Query Join Room Token Started!"));
 
@@ -409,7 +433,7 @@ void FUserManagerEOS::CreateEOSVoiceRoomToken(FString clientID)
 	roomOptions.ApiVersion = EOS_RTCADMIN_QUERYJOINROOMTOKEN_API_LATEST;
 	roomOptions.LocalUserId = GetLocalProductUserId();
 	roomOptions.RoomName = "Room";
-	EOS_ProductUserId ids = GetProductUserId(FUniqueNetIdString(clientID));
+	EOS_ProductUserId ids = StringtoPUID(clientID);
 
 	roomOptions.TargetUserIds = &ids;
 	roomOptions.TargetUserIdsCount = 1;
@@ -419,6 +443,7 @@ void FUserManagerEOS::CreateEOSVoiceRoomToken(FString clientID)
 		if (Data->ResultCode == EOS_EResult::EOS_Success)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Query Join Room Token Success!"));
+			
 			GetRoomToken(ids, Data->QueryId, Data->ClientBaseUrl);
 		}
 		else {
@@ -448,7 +473,9 @@ void FUserManagerEOS::GetRoomToken(EOS_ProductUserId id, uint32_t query, const c
 		UE_LOG(LogTemp, Warning, TEXT("Token Copied!"));
 
 		EOS_RTCAdmin_UserToken tok = **token;
-		JoinVoiceRoom(id, url, tok.Token);
+		BaseUrl = url;
+		VoiceToken = tok.Token;
+		//JoinVoiceRoom(id, url, tok.Token);
 	}
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("Token Not Copied!"));
@@ -457,8 +484,10 @@ void FUserManagerEOS::GetRoomToken(EOS_ProductUserId id, uint32_t query, const c
 }
 
 
-void FUserManagerEOS::JoinVoiceRoom(EOS_ProductUserId id, const char* url, const char* token)
+void FUserManagerEOS::JoinVoiceRoom(FString url, FString token)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Join Voice Join Room Called!"));
+
 	EOS_HRTC Handle = {};
 	FJoinRoomCallback* CallbackObj = new FJoinRoomCallback();
 
@@ -466,12 +495,12 @@ void FUserManagerEOS::JoinVoiceRoom(EOS_ProductUserId id, const char* url, const
 	joinRoomOptions.ApiVersion = EOS_RTC_JOINROOM_API_LATEST;
 	joinRoomOptions.bManualAudioInputEnabled = EOS_FALSE;
 	joinRoomOptions.bManualAudioOutputEnabled = EOS_FALSE;
-	joinRoomOptions.ClientBaseUrl = url;
+	joinRoomOptions.ClientBaseUrl = TCHAR_TO_UTF8(*url);
 	joinRoomOptions.Flags = EOS_RTC_JOINROOMFLAGS_ENABLE_ECHO;
-	joinRoomOptions.LocalUserId = id;
-	joinRoomOptions.ParticipantId = id;
+	joinRoomOptions.LocalUserId = GetLocalProductUserId();
+	joinRoomOptions.ParticipantId = GetLocalProductUserId();
 	/*const char* tok = token.Token ;*/
-	joinRoomOptions.ParticipantToken = token;
+	joinRoomOptions.ParticipantToken = TCHAR_TO_UTF8(*token);
 	joinRoomOptions.RoomName = "Room";
 
 	CallbackObj->CallbackLambda = [this](const EOS_RTC_JoinRoomCallbackInfo* Data) {
@@ -489,7 +518,7 @@ void FUserManagerEOS::JoinVoiceRoom(EOS_ProductUserId id, const char* url, const
 
 
 
-void FUserManagerEOS::EOSLoginWithDeviceID() {
+void FUserManagerEOS::EOSLoginWithDeviceID(FString id) {
 	UE_LOG(LogTemp, Warning, TEXT("login EOS User called!"));
 
 	FConnectLoginCallback* CallbackObj = new FConnectLoginCallback();
@@ -517,7 +546,7 @@ void FUserManagerEOS::EOSLoginWithDeviceID() {
 
 	int32 LocalUserNum = 0;
 
-	CallbackObj->CallbackLambda = [LocalUserNum, this](const EOS_Connect_LoginCallbackInfo* Data) {
+	CallbackObj->CallbackLambda = [id, LocalUserNum, this](const EOS_Connect_LoginCallbackInfo* Data) {
 		EOS_EResult loginResult = Data->ResultCode;
 		UE_LOG(LogTemp, Warning, TEXT("Result Code: %s"), EOS_EResult_ToString(loginResult));
 		if (loginResult == EOS_EResult::EOS_Success) {
@@ -527,15 +556,15 @@ void FUserManagerEOS::EOSLoginWithDeviceID() {
 			AddLocalUser(LocalUserNum, nullptr, Data->LocalUserId);
 			FUniqueNetIdEOSPtr NetIdEOS = GetLocalUniqueNetIdEOS(LocalUserNum);
 			PUID = Data->LocalUserId;
-			
-			UE_LOG(LogTemp, Warning, TEXT("PUID: %s"), Data->LocalUserId);
+			PUIDString = PUIDtoSTring(PUID);
+			//UE_LOG(LogTemp, Warning, TEXT("PUID: %s"), Data->LocalUserId);
 		}
 		else if (loginResult == EOS_EResult::EOS_NotFound) {
 			UE_LOG(LogTemp, Warning, TEXT("New Device ID creating!"));
-			CreateDeviceID();
+			CreateDeviceID(id);
 		}
 		else {
-			UE_LOG(LogTemp, Warning, TEXT("Login with Device ID Failed: %s"), EOS_EResult_ToString(Data->ResultCode));
+			UE_LOG(LogTemp, Warning, TEXT("Login with Device ID Failed: %s"), UTF8_TO_TCHAR(EOS_EResult_ToString(Data->ResultCode)));
 		}
 	};
 
@@ -546,33 +575,26 @@ void FUserManagerEOS::DeleteDeviceID() {
 
 }
 
-void FUserManagerEOS::CreateDeviceID() {
+void FUserManagerEOS::CreateDeviceID(FString id) {
 	UE_LOG(LogTemp, Warning, TEXT("Create Device ID Called!"));
 
-	/*EOS_HPlatform platform = PlatformHandle;
-	EOS_HConnect connect = EOS_Platform_GetConnectInterface(platform);
-	const TCHAR* id = *UserID;
-	void* clientData = TCHAR_TO_UTF8(id);*/
-	//std::string NameString(TCHAR_TO_UTF8(*UserID));
-	//const char* name = NameString.c_str();
-	//const char* devModel = name;
 
-	EOS_Connect_CreateDeviceIdOptions deviceOptions = {};
-	deviceOptions.ApiVersion = 1;
-	deviceOptions.DeviceModel = "PC Windows";
+	EOS_Connect_CreateDeviceIdOptions deviceOptions;
+	deviceOptions.ApiVersion = EOS_CONNECT_CREATEDEVICEID_API_LATEST;
+	deviceOptions.DeviceModel = TCHAR_TO_UTF8(*id);
 
 	FCreateDeviceIDCallback* CallbackObj = new FCreateDeviceIDCallback();
 
 	int32 LocalUserNum = 0;
-	CallbackObj->CallbackLambda = [this](const EOS_Connect_CreateDeviceIdCallbackInfo* Data) {
+	CallbackObj->CallbackLambda = [id, this](const EOS_Connect_CreateDeviceIdCallbackInfo* Data) {
 		UE_LOG(LogTemp, Warning, TEXT("Device ID Created!"));
 		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Device ID Created!")));
-		if (Data->ResultCode == EOS_EResult::EOS_Success || Data->ResultCode == EOS_EResult::EOS_Success) 
+		if (Data->ResultCode == EOS_EResult::EOS_Success || Data->ResultCode == EOS_EResult::EOS_DuplicateNotAllowed)
 		{
-			EOSLoginWithDeviceID();
+			EOSLoginWithDeviceID(id);
 		}
 		else {
-			UE_LOG(LogTemp, Warning, TEXT("Device ID Failed to be Created: %s"), EOS_EResult_ToString(Data->ResultCode));
+			UE_LOG(LogTemp, Warning, TEXT("Device ID Failed to be Created: %s"), UTF8_TO_TCHAR(EOS_EResult_ToString(Data->ResultCode)));
 		}
 	};
 	EOS_Connect_CreateDeviceId(EOSSubsystem->ConnectHandle, &deviceOptions, (void*)CallbackObj, CallbackObj->GetCallbackPtr());
@@ -598,13 +620,19 @@ bool FUserManagerEOS::Login(int32 LocalUserNum, const FOnlineAccountCredentials&
 	if (AccountCredentials.Type == TEXT("deviceId")) {
 		UE_LOG(LogTemp, Warning, TEXT("Login Device ID called!"));
 
-		EOSLoginWithDeviceID();
+		EOSLoginWithDeviceID(AccountCredentials.Id);
 		return true;
 	}
-	else if (AccountCredentials.Type == TEXT("startVoice")) {
-		UE_LOG(LogTemp, Warning, TEXT("Login for voice called!"));
+	else if (AccountCredentials.Type == TEXT("voiceToken")) {
+		UE_LOG(LogTemp, Warning, TEXT("Login Device ID called!"));
 
-		CreateEOSVoiceRoomToken(*AccountCredentials.Id);
+		CreateEOSVoiceRoomToken(AccountCredentials.Id);
+		return true;
+	}
+	else if (AccountCredentials.Type == TEXT("joinVoice")) {
+		UE_LOG(LogTemp, Warning, TEXT("Login Device ID called!"));
+
+		JoinVoiceRoom(AccountCredentials.Id, AccountCredentials.Token);
 		return true;
 	}
 
@@ -1712,6 +1740,17 @@ FString FUserManagerEOS::GetPlayerNickname(const FUniqueNetId& UserId) const
 
 FString FUserManagerEOS::GetAuthToken(int32 LocalUserNum) const
 {
+	if (LocalUserNum == -2) {
+		FString tok(VoiceToken);
+		return tok;
+	} else if (LocalUserNum == -3) {
+		FString tok(BaseUrl);
+		return tok;
+	}
+	else if (LocalUserNum == -4) {
+		FString tok = *PUIDString;
+		return tok;
+	}
 	FUniqueNetIdPtr UserId = GetUniquePlayerId(LocalUserNum);
 	if (UserId.IsValid())
 	{

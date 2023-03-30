@@ -7,8 +7,6 @@
 #include "Interfaces/OnlineIdentityInterface.h"
 #include "Interfaces/OnlineUserCloudInterface.h"
 #include "Kismet/GameplayStatics.h"
-#include "VoiceChat.h"
-
 
 
 
@@ -20,8 +18,9 @@ void UOne_Click_EOS_Subsystem::Login_With_EOS(FString ID, FString Token, FString
 	if(SubsystemRef)
 	{
 		IOnlineIdentityPtr IdentityPointerRef = SubsystemRef->GetIdentityInterface();
-		if(IdentityPointerRef)
-		{
+		if (IdentityPointerRef)
+			{
+			
 			FOnlineAccountCredentials AccountDetails;
 			AccountDetails.Id = ID;
 			AccountDetails.Token = Token;
@@ -88,9 +87,9 @@ void UOne_Click_EOS_Subsystem::Create_EOS_Session(bool bIsDedicatedServer, bool 
 			SessionCreationInfo.bAllowJoinViaPresence = bAllowJoinViaPresence;
 			SessionCreationInfo.bAllowJoinViaPresenceFriendsOnly = bAllowJoinViaPresenceFriendsOnly;
 			SessionCreationInfo.bShouldAdvertise = bShouldAdvertise;
-			SessionCreationInfo.Set(SEARCH_KEYWORDS, FString("EOS_ExampleSession"), EOnlineDataAdvertisementType::ViaOnlineService);
+			SessionCreationInfo.Set(SEARCH_KEYWORDS, FName(NAME_GameSession).ToString(), EOnlineDataAdvertisementType::ViaOnlineService);
 			SessionPtrRef->OnCreateSessionCompleteDelegates.AddUObject(this, &UOne_Click_EOS_Subsystem::OnCreateSessionCompleted);
-			SessionPtrRef->CreateSession(0,FName("EOS_ExampleSession"),SessionCreationInfo);
+			SessionPtrRef->CreateSession(0, FName(NAME_GameSession), SessionCreationInfo);
 		}
 	}
 }
@@ -252,37 +251,57 @@ bool UOne_Click_EOS_Subsystem::IsPlayerLoggedIn()
 	return false;
 }
 
+FString UOne_Click_EOS_Subsystem::getVoiceToken()
+{
+	FString token = "";
+	IOnlineSubsystem* SubsystemRef = Online::GetSubsystem(this->GetWorld());
+	if (SubsystemRef)
+	{
+		IOnlineIdentityPtr IdentityPointerRef = SubsystemRef->GetIdentityInterface();
+		if (IdentityPointerRef)
+		{
+			token = IdentityPointerRef->GetAuthToken(-2);
+		}
+	}
+	return token;
+}
 
-//void UOne_Click_EOS_Subsystem::EOSVoiceChatLogin()
-//{
-//
-//	IOnlineSubsystem *SubsystemRef = Online::GetSubsystem(this->GetWorld());
-//	if (SubsystemRef) {
-//		IOnlineIdentityPtr IdentityPointerRef = SubsystemRef->GetIdentityInterface();
-//		if (IdentityPointerRef) {
-//			if (IsPlayerLoggedIn()) {
-//				IVoiceChat* VoiceChatRef = IVoiceChat::Get();
-//				if (VoiceChatRef) {
-//					VoiceChatUserRef = VoiceChatRef->CreateUser();
-//					if (VoiceChatUserRef) {
-//						TSharedPtr<const FUniqueNetId> UserIdRef = IdentityPointerRef->GetUniquePlayerId(0);
-//						FPlatformUserId PlatformUserIdRef = IdentityPointerRef->GetPlatformUserIdFromUniqueNetId(*UserIdRef);
-//						VoiceChatUserRef->Login(PlatformUserIdRef, UserIdRef->ToString(), TEXT(""), FOnVoiceChatLoginCompleteDelegate::CreateUObject(this, &UOne_Click_EOS_Subsystem::OnVoiceLoginComplete));
-//					}
-//				}
-//			}
-//		}
-//	}
-//}
-//
-//void UOne_Click_EOS_Subsystem::OnVoiceLoginComplete(const FString& PlayerName, const FVoiceChatResult& Result)
-//{
-//	if (Result.IsSuccess()) {
-//		UE_LOG(LogTemp, Warning, TEXT("Voice Chat Login Success!"));
-//	}
-//	else {
-//		UE_LOG(LogTemp, Warning, TEXT("Voice Chat Login Failed!"));
-//	}
-//}
+FString UOne_Click_EOS_Subsystem::getBaseUrl()
+{
+	FString url = "";
+	IOnlineSubsystem* SubsystemRef = Online::GetSubsystem(this->GetWorld());
+	if (SubsystemRef)
+	{
+		IOnlineIdentityPtr IdentityPointerRef = SubsystemRef->GetIdentityInterface();
+		if (IdentityPointerRef)
+		{
+			url = IdentityPointerRef->GetAuthToken(-3);
+		}
+	}
+	return url;
+}
+
+FString UOne_Click_EOS_Subsystem::getPUID()
+{
+	FString puid = "";
+	IOnlineSubsystem* SubsystemRef = Online::GetSubsystem(this->GetWorld());
+	if (SubsystemRef)
+	{
+		IOnlineIdentityPtr IdentityPointerRef = SubsystemRef->GetIdentityInterface();
+		if (IdentityPointerRef)
+		{
+			puid = IdentityPointerRef->GetAuthToken(-4);
+		}
+	}
+	return puid;
+}
+
+
+
+
+
+
+
+
 
 

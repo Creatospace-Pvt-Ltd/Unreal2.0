@@ -6,7 +6,6 @@
 #include "OnlineError.h"
 #include "OnlineSessionSettings.h"
 #include "FindSessionsCallbackProxy.h"
-#include "VoiceChat.h"
 #include "GameFramework/SaveGame.h"
 #include "Interfaces/OnlineStatsInterface.h"
 #include "Interfaces/OnlineSessionInterface.h"
@@ -53,8 +52,17 @@ public:
 	bool IsPlayerLoggedIn();
 
 
+	UFUNCTION(BlueprintCallable, Category = "EOS Functions")
+	FString getVoiceToken();
 
 
+	UFUNCTION(BlueprintCallable, Category = "EOS Functions")
+	FString getBaseUrl();
+
+	UFUNCTION(BlueprintCallable, Category = "EOS Functions")
+	FString getPUID();
+
+	
 
 	//Delegates for Epic Online Services
 	UPROPERTY(BlueprintAssignable, Category="EOS Delegates")
@@ -74,7 +82,6 @@ public:
 	void OnCreateSessionCompleted(FName SessionName, bool bWasSuccesful);
 	void OnFindSessionCompleted(bool bWasSuccess);
 	void OnJoinSessionCompleted(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
-	void OnVoiceLoginComplete(const FString& PlayerName, const FVoiceChatResult& Result);
 
 
 	//Variables for Epic Online Services
