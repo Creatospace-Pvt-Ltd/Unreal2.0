@@ -295,6 +295,7 @@ typedef TEOSCallback<EOS_RTCAdmin_OnQueryJoinRoomTokenCompleteCallback, EOS_RTCA
 typedef TEOSCallback<EOS_Connect_OnCreateUserCallback, EOS_Connect_CreateUserCallbackInfo> FCreateUserCallback;
 typedef TEOSCallback<EOS_Connect_OnCreateDeviceIdCallback, EOS_Connect_CreateDeviceIdCallbackInfo> FCreateDeviceIDCallback;
 typedef TEOSCallback<EOS_Auth_OnDeletePersistentAuthCallback, EOS_Auth_DeletePersistentAuthCallbackInfo> FDeletePersistentAuthCallback;
+typedef TEOSCallback<EOS_Connect_OnDeleteDeviceIdCallback, EOS_Connect_DeleteDeviceIdCallbackInfo>FDeleteDeviceIDCallback;
 
 // Chose arbitrarily since the SDK doesn't define it
 #define EOS_MAX_TOKEN_SIZE 4096
@@ -484,24 +485,32 @@ void FUserManagerEOS::GetRoomToken(EOS_ProductUserId id, uint32_t query, const c
 }
 
 
-void FUserManagerEOS::JoinVoiceRoom(FString url, FString token)
+void FUserManagerEOS::JoinVoiceRoom(FString url, FString token, FString roomId)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Join Voice Join Room Called!"));
 
-	EOS_HRTC Handle = {};
 	FJoinRoomCallback* CallbackObj = new FJoinRoomCallback();
 
 	EOS_RTC_JoinRoomOptions joinRoomOptions;
 	joinRoomOptions.ApiVersion = EOS_RTC_JOINROOM_API_LATEST;
 	joinRoomOptions.bManualAudioInputEnabled = EOS_FALSE;
 	joinRoomOptions.bManualAudioOutputEnabled = EOS_FALSE;
-	joinRoomOptions.ClientBaseUrl = TCHAR_TO_UTF8(*url);
-	joinRoomOptions.Flags = EOS_RTC_JOINROOMFLAGS_ENABLE_ECHO;
-	joinRoomOptions.LocalUserId = GetLocalProductUserId();
-	joinRoomOptions.ParticipantId = GetLocalProductUserId();
-	/*const char* tok = token.Token ;*/
-	joinRoomOptions.ParticipantToken = TCHAR_TO_UTF8(*token);
-	joinRoomOptions.RoomName = "Room";
+	char urlAnsi[EOS_OSS_STRING_BUFFER_LENGTH];
+	FCStringAnsi::Strncpy(urlAnsi, TCHAR_TO_ANSI(*url), EOS_OSS_STRING_BUFFER_LENGTH);
+	joinRoomOptions.ClientBaseUrl = urlAnsi;
+
+	uint32_t OverlayFlags = 0;
+	OverlayFlags |= EOS_RTC_JOINROOMFLAGS_ENABLE_ECHO;
+	joinRoomOptions.Flags = OverlayFlags;
+	joinRoomOptions.LocalUserId = StringtoPUID(PUIDString);
+	joinRoomOptions.ParticipantId = StringtoPUID(PUIDString);
+	
+	char tokenAnsi[EOS_MAX_TOKEN_SIZE];
+	FCStringAnsi::Strncpy(tokenAnsi, TCHAR_TO_ANSI(*token), EOS_MAX_TOKEN_SIZE);
+	joinRoomOptions.ParticipantToken = tokenAnsi;
+	char roomIDAnsi[EOS_OSS_STRING_BUFFER_LENGTH];
+	FCStringAnsi::Strncpy(roomIDAnsi, TCHAR_TO_ANSI(*roomId), EOS_OSS_STRING_BUFFER_LENGTH);
+	joinRoomOptions.RoomName = roomIDAnsi;
 
 	CallbackObj->CallbackLambda = [this](const EOS_RTC_JoinRoomCallbackInfo* Data) {
 		if (Data->ResultCode == EOS_EResult::EOS_Success)
@@ -512,6 +521,7 @@ void FUserManagerEOS::JoinVoiceRoom(FString url, FString token)
 			UE_LOG(LogTemp, Warning, TEXT("Result Code: %s"), UTF8_TO_TCHAR(EOS_EResult_ToString(Data->ResultCode)));
 		}
 	};
+	
 	EOS_RTC_JoinRoom(EOSSubsystem->RTCHandle, &joinRoomOptions, (void*)CallbackObj, CallbackObj->GetCallbackPtr());
 }
 
@@ -573,15 +583,30 @@ void FUserManagerEOS::EOSLoginWithDeviceID(FString id) {
 
 void FUserManagerEOS::DeleteDeviceID() {
 
+	EOS_Connect_DeleteDeviceIdOptions DeleteOptions;
+	DeleteOptions.ApiVersion = EOS_CONNECT_DELETEDEVICEID_API_LATEST;
+
+	FDeleteDeviceIDCallback* CallbackObj = new FDeleteDeviceIDCallback();
+
+	CallbackObj->CallbackLambda = [this](const EOS_Connect_DeleteDeviceIdCallbackInfo* Data) {
+		if (Data->ResultCode == EOS_EResult::EOS_Success) {
+			UE_LOG(LogTemp, Warning, TEXT("Delete Device ID Success!"));
+		}
+		else {
+			UE_LOG(LogTemp, Warning, TEXT("Delete Device ID failed: %s"), UTF8_TO_TCHAR(EOS_EResult_ToString(Data->ResultCode)));
+		}
+	};
+
+	EOS_Connect_DeleteDeviceId(EOSSubsystem->ConnectHandle, &DeleteOptions, (void*)CallbackObj, CallbackObj->GetCallbackPtr());
 }
 
 void FUserManagerEOS::CreateDeviceID(FString id) {
 	UE_LOG(LogTemp, Warning, TEXT("Create Device ID Called!"));
 
 
-	EOS_Connect_CreateDeviceIdOptions deviceOptions;
+	EOS_Connect_CreateDeviceIdOptions deviceOptions = {};
 	deviceOptions.ApiVersion = EOS_CONNECT_CREATEDEVICEID_API_LATEST;
-	deviceOptions.DeviceModel = TCHAR_TO_UTF8(*id);
+	deviceOptions.DeviceModel = "Windows PC";
 
 	FCreateDeviceIDCallback* CallbackObj = new FCreateDeviceIDCallback();
 
@@ -623,16 +648,22 @@ bool FUserManagerEOS::Login(int32 LocalUserNum, const FOnlineAccountCredentials&
 		EOSLoginWithDeviceID(AccountCredentials.Id);
 		return true;
 	}
+	else if (AccountCredentials.Type == TEXT("deleteDeviceId")) {
+		UE_LOG(LogTemp, Warning, TEXT("Login Device ID called!"));
+
+		DeleteDeviceID();
+		return true;
+	}
 	else if (AccountCredentials.Type == TEXT("voiceToken")) {
 		UE_LOG(LogTemp, Warning, TEXT("Login Device ID called!"));
 
 		CreateEOSVoiceRoomToken(AccountCredentials.Id);
 		return true;
 	}
-	else if (AccountCredentials.Type == TEXT("joinVoice")) {
+	else {
 		UE_LOG(LogTemp, Warning, TEXT("Login Device ID called!"));
 
-		JoinVoiceRoom(AccountCredentials.Id, AccountCredentials.Token);
+		JoinVoiceRoom(AccountCredentials.Id, AccountCredentials.Token, AccountCredentials.Type);
 		return true;
 	}
 
