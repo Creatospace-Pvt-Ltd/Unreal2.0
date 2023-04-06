@@ -230,12 +230,13 @@ bool FOnlineSubsystemEOS::PlatformCreate()
 	FCStringAnsi::Strncpy(PlatformOptions.CacheDirectoryAnsi, TCHAR_TO_UTF8(*CacheDir), EOS_OSS_STRING_BUFFER_LENGTH);
 	FCStringAnsi::Strncpy(PlatformOptions.EncryptionKeyAnsi, TCHAR_TO_UTF8(*ArtifactSettings.EncryptionKey), EOS_ENCRYPTION_KEY_MAX_BUFFER_LEN);
 
-#if WITH_EOS_RTC
+//#if WITH_EOS_RTC
 	EOS_Platform_RTCOptions RtcOptions = { 0 };
+	UE_LOG(LogTemp, Warning, TEXT("RTC Enabled!"));
 	RtcOptions.ApiVersion = EOS_PLATFORM_RTCOPTIONS_API_LATEST;
-	RtcOptions.PlatformSpecificOptions = nullptr;
+	RtcOptions.PlatformSpecificOptions = "C:\\Program Files\\Epic Games\\UE_5.0_SourceBuild\\Engine\\Source\\ThirdParty\\EOSSDK\\SDK\\Bin\\x64\\xaudio2_9redist.dll";
 	PlatformOptions.RTCOptions = &RtcOptions;
-#endif
+//#endif
 
 	EOSPlatformHandle = EOSHelpersPtr->CreatePlatform(PlatformOptions);
 	if (EOSPlatformHandle == nullptr)

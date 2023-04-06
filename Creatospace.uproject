@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{F73BC8F8-498E-58E6-9633-FE82C2974CF4}",
+	"EngineAssociation": "{9261666F-489A-DF74-5945-C5A6D89EC505}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -90,6 +90,10 @@
 		},
 		{
 			"Name": "WebBrowserNativeProxy",
+			"Enabled": true
+		},
+		{
+			"Name": "WhatsMyPublicIP",
 			"Enabled": true
 		}
 	]
