@@ -13,6 +13,7 @@ DECLARE_STATS_GROUP(TEXT("EOS"), STATGROUP_EOS, STATCAT_Advanced);
 #if WITH_EOS_SDK
 
 #include "eos_sdk.h"
+#include <eos_rtc_audio.h>
 
 class FSocketSubsystemEOS;
 class IEOSSDKManager;
@@ -125,6 +126,7 @@ PACKAGE_SCOPE:
 	EOS_HConnect ConnectHandle;
 	EOS_HRTCAdmin RTCAdminHandle;
 	EOS_HRTC RTCHandle;
+	EOS_HRTCAudio RTCAudioHandle;
 
 
 	EOS_HSessions SessionsHandle;

@@ -25,6 +25,7 @@
 #include "eos_rtc.h"
 
 #include "eos_rtc_admin.h"
+#include <eos_rtc_audio.h>
 
 static inline EInviteStatus::Type ToEInviteStatus(EOS_EFriendsStatus InStatus)
 {
@@ -296,6 +297,9 @@ typedef TEOSCallback<EOS_Connect_OnCreateUserCallback, EOS_Connect_CreateUserCal
 typedef TEOSCallback<EOS_Connect_OnCreateDeviceIdCallback, EOS_Connect_CreateDeviceIdCallbackInfo> FCreateDeviceIDCallback;
 typedef TEOSCallback<EOS_Auth_OnDeletePersistentAuthCallback, EOS_Auth_DeletePersistentAuthCallbackInfo> FDeletePersistentAuthCallback;
 typedef TEOSCallback<EOS_Connect_OnDeleteDeviceIdCallback, EOS_Connect_DeleteDeviceIdCallbackInfo>FDeleteDeviceIDCallback;
+typedef TEOSCallback<EOS_RTCAudio_OnUpdateSendingCallback, EOS_RTCAudio_UpdateSendingCallbackInfo>FLocalMuteCallback;
+typedef TEOSCallback<EOS_RTCAudio_OnParticipantUpdatedCallback, EOS_RTCAudio_ParticipantUpdatedCallbackInfo> FRegisterForAudioNotificationCallback;
+
 
 // Chose arbitrarily since the SDK doesn't define it
 #define EOS_MAX_TOKEN_SIZE 4096
@@ -500,7 +504,7 @@ void FUserManagerEOS::JoinVoiceRoom(FString url, FString token, FString roomId)
 	joinRoomOptions.ClientBaseUrl = urlAnsi;
 
 	uint32_t OverlayFlags = 0;
-	OverlayFlags |= EOS_RTC_JOINROOMFLAGS_ENABLE_ECHO;
+	//OverlayFlags |= EOS_RTC_JOINROOMFLAGS_ENABLE_ECHO;
 	joinRoomOptions.Flags = OverlayFlags;
 	joinRoomOptions.LocalUserId = StringtoPUID(PUIDString);
 	joinRoomOptions.ParticipantId = StringtoPUID(PUIDString);
@@ -627,6 +631,73 @@ void FUserManagerEOS::CreateDeviceID(FString id) {
 }
 
 
+void FUserManagerEOS::LocalMute(FString roomId, FString mode) {
+
+	EOS_RTCAudio_UpdateSendingOptions updateSendingOptions = {};
+	updateSendingOptions.ApiVersion = EOS_RTCAUDIO_UPDATESENDING_API_LATEST;
+	if (mode == TEXT("mute")) {
+		updateSendingOptions.AudioStatus = EOS_ERTCAudioStatus::EOS_RTCAS_Disabled;
+	}
+	else {
+		updateSendingOptions.AudioStatus = EOS_ERTCAudioStatus::EOS_RTCAS_Enabled;
+	}
+	updateSendingOptions.LocalUserId = PUID;
+	char roomIDAnsi[EOS_OSS_STRING_BUFFER_LENGTH];
+	FCStringAnsi::Strncpy(roomIDAnsi, TCHAR_TO_ANSI(*roomId), EOS_OSS_STRING_BUFFER_LENGTH);
+	updateSendingOptions.RoomName = roomIDAnsi;
+
+	EOS_HRTCAudio audioHandle = EOS_RTC_GetAudioInterface(EOSSubsystem->RTCHandle);
+
+	FLocalMuteCallback* CallbackObj = new FLocalMuteCallback();
+
+	CallbackObj->CallbackLambda = [this](const EOS_RTCAudio_UpdateSendingCallbackInfo* Data) {
+		if (Data->ResultCode == EOS_EResult::EOS_Success) {
+			UE_LOG(LogTemp, Warning, TEXT("Local Mute Success!"));
+		}
+		else {
+			UE_LOG(LogTemp, Warning, TEXT("Result Code: %s"), UTF8_TO_TCHAR(EOS_EResult_ToString(Data->ResultCode)));
+		}
+	};
+
+	EOS_RTCAudio_UpdateSending(audioHandle, &updateSendingOptions, (void*)CallbackObj, CallbackObj->GetCallbackPtr());
+}
+
+void FUserManagerEOS::RegisterForAudioNotification(FString roomId) {
+
+	EOS_RTCAudio_AddNotifyParticipantUpdatedOptions notifyOptions = {};
+	char roomIDAnsi[EOS_OSS_STRING_BUFFER_LENGTH];
+	FCStringAnsi::Strncpy(roomIDAnsi, TCHAR_TO_ANSI(*roomId), EOS_OSS_STRING_BUFFER_LENGTH);
+	notifyOptions.RoomName = roomIDAnsi;
+	notifyOptions.ApiVersion = EOS_RTCAUDIO_ADDNOTIFYPARTICIPANTUPDATED_API_LATEST;
+	notifyOptions.LocalUserId = PUID;
+
+	EOS_HRTCAudio audioHandle = EOS_RTC_GetAudioInterface(EOSSubsystem->RTCHandle);
+
+	// FRegisterForAudioNotificationCallback* CallbackObj = new FRegisterForAudioNotificationCallback();
+
+	EOS_RTCAudio_OnParticipantUpdatedCallback callback = [](const EOS_RTCAudio_ParticipantUpdatedCallbackInfo* Data) {
+		if (Data->AudioStatus == EOS_ERTCAudioStatus::EOS_RTCAS_Enabled) {
+			UE_LOG(LogTemp, Warning, TEXT("Add Notify Success!"));
+		}
+		else {
+			UE_LOG(LogTemp, Warning, TEXT("Add Notify Failed!"));
+		}
+	};
+
+	/*CallbackObj->CallbackLambda = [this](const EOS_RTCAudio_ParticipantUpdatedCallbackInfo* Data) {
+		if (Data->AudioStatus == EOS_ERTCAudioStatus::EOS_RTCAS_Enabled) {
+			UE_LOG(LogTemp, Warning, TEXT("Add Notify Success!"));
+		}
+		else {
+			UE_LOG(LogTemp, Warning, TEXT("Add Notify Failed!"));
+		}
+	};*/
+
+	EOS_RTCAudio_AddNotifyParticipantUpdated(audioHandle, &notifyOptions, (void*)callback, callback);
+}
+
+
+
 
 
 
@@ -649,9 +720,21 @@ bool FUserManagerEOS::Login(int32 LocalUserNum, const FOnlineAccountCredentials&
 		return true;
 	}
 	else if (AccountCredentials.Type == TEXT("deleteDeviceId")) {
-		UE_LOG(LogTemp, Warning, TEXT("Login Device ID called!"));
+		UE_LOG(LogTemp, Warning, TEXT("Delete Device ID called!"));
 
 		DeleteDeviceID();
+		return true;
+	}
+	else if (AccountCredentials.Type == TEXT("registerNotif")) {
+		UE_LOG(LogTemp, Warning, TEXT("Delete Device ID called!"));
+
+		RegisterForAudioNotification(AccountCredentials.Id);
+		return true;
+	}
+	else if (AccountCredentials.Type == TEXT("localMute")) {
+		UE_LOG(LogTemp, Warning, TEXT("Login Device ID called!"));
+
+		LocalMute(AccountCredentials.Id, AccountCredentials.Token);
 		return true;
 	}
 	else if (AccountCredentials.Type == TEXT("voiceToken")) {

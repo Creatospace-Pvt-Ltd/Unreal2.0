@@ -287,6 +287,9 @@ public:
 	void JoinVoiceRoom(FString url, FString token, FString roomId);
 	void GetRoomToken(EOS_ProductUserId id, uint32_t query, const char* url);
 	
+	void LocalMute(FString roomId, FString mode);
+	void RegisterForAudioNotification(FString roomId);
+
 	EOS_ProductUserId PUID;
 	FString PUIDString;
 	const char* VoiceToken;
