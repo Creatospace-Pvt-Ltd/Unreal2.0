@@ -33,7 +33,6 @@
 #include "EOSVoiceChatUser.h"
 #include "VoiceChatResult.h"
 #include "VoiceChatErrors.h"
-#include <eos_rtc.h>
 
 /** Class that blocks login/logout for the OSS EOS managed IVoiceChatUser interfaces. */
 class FOnlineSubsystemEOSVoiceChatUserWrapper : public IVoiceChatUser
@@ -330,13 +329,7 @@ bool FOnlineSubsystemEOS::Init()
 	RTCHandle = EOS_Platform_GetRTCInterface(*EOSPlatformHandle);
 	if (RTCHandle == nullptr)
 	{
-		UE_LOG_ONLINE(Error, TEXT("FOnlineSubsystemEOS: failed to init EOS platform, couldn't get RTC handle"));
-		return false;
-	}
-	RTCAudioHandle = EOS_RTC_GetAudioInterface(RTCHandle);
-	if (RTCAudioHandle == nullptr)
-	{
-		UE_LOG_ONLINE(Error, TEXT("FOnlineSubsystemEOS: failed to init EOS platform, couldn't get Audio handle"));
+		UE_LOG_ONLINE(Error, TEXT("FOnlineSubsystemEOS: failed to init EOS platform, couldn't get connect handle"));
 		return false;
 	}
 	SessionsHandle = EOS_Platform_GetSessionsInterface(*EOSPlatformHandle);
@@ -571,7 +564,6 @@ FOnlineSubsystemEOS::FOnlineSubsystemEOS(FName InInstanceName) :
 	, ConnectHandle(nullptr)
 	, RTCAdminHandle(nullptr)
 	, RTCHandle(nullptr)
-	, RTCAudioHandle(nullptr)
 	, SessionsHandle(nullptr)
 	, StatsHandle(nullptr)
 	, LeaderboardsHandle(nullptr)

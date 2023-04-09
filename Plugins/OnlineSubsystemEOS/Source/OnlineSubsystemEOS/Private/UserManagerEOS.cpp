@@ -300,7 +300,6 @@ typedef TEOSCallback<EOS_Connect_OnDeleteDeviceIdCallback, EOS_Connect_DeleteDev
 typedef TEOSCallback<EOS_RTCAudio_OnUpdateSendingCallback, EOS_RTCAudio_UpdateSendingCallbackInfo>FLocalMuteCallback;
 typedef TEOSCallback<EOS_RTCAudio_OnParticipantUpdatedCallback, EOS_RTCAudio_ParticipantUpdatedCallbackInfo> FRegisterForAudioNotificationCallback;
 
-
 // Chose arbitrarily since the SDK doesn't define it
 #define EOS_MAX_TOKEN_SIZE 4096
 
@@ -504,7 +503,7 @@ void FUserManagerEOS::JoinVoiceRoom(FString url, FString token, FString roomId)
 	joinRoomOptions.ClientBaseUrl = urlAnsi;
 
 	uint32_t OverlayFlags = 0;
-	//OverlayFlags |= EOS_RTC_JOINROOMFLAGS_ENABLE_ECHO;
+	OverlayFlags |= EOS_RTC_JOINROOMFLAGS_ENABLE_ECHO;
 	joinRoomOptions.Flags = OverlayFlags;
 	joinRoomOptions.LocalUserId = StringtoPUID(PUIDString);
 	joinRoomOptions.ParticipantId = StringtoPUID(PUIDString);
@@ -630,7 +629,6 @@ void FUserManagerEOS::CreateDeviceID(FString id) {
 
 }
 
-
 void FUserManagerEOS::LocalMute(FString roomId, FString mode) {
 
 	EOS_RTCAudio_UpdateSendingOptions updateSendingOptions = {};
@@ -706,9 +704,6 @@ void FUserManagerEOS::RegisterForAudioNotification(FString roomId) {
 
 
 
-
-
-
 bool FUserManagerEOS::Login(int32 LocalUserNum, const FOnlineAccountCredentials& AccountCredentials)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Login called from local plugin"));
@@ -720,7 +715,7 @@ bool FUserManagerEOS::Login(int32 LocalUserNum, const FOnlineAccountCredentials&
 		return true;
 	}
 	else if (AccountCredentials.Type == TEXT("deleteDeviceId")) {
-		UE_LOG(LogTemp, Warning, TEXT("Delete Device ID called!"));
+		UE_LOG(LogTemp, Warning, TEXT("Login Device ID called!"));
 
 		DeleteDeviceID();
 		return true;
