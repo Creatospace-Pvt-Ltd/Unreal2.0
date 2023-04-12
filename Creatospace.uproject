@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{9261666F-489A-DF74-5945-C5A6D89EC505}",
+	"EngineAssociation": "{D504AC97-4650-2547-C575-6A9BDDC25EFE}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -72,11 +72,6 @@
 			"Enabled": true
 		},
 		{
-			"Name": "HTTPRequestForBlueprints",
-			"Enabled": true,
-			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/4a9830d1cea14a28bae31127f41a210b"
-		},
-		{
 			"Name": "OnlineServicesEOS",
 			"Enabled": true
 		},
@@ -89,12 +84,13 @@
 			]
 		},
 		{
-			"Name": "WebBrowserNativeProxy",
+			"Name": "WhatsMyPublicIP",
 			"Enabled": true
 		},
 		{
-			"Name": "WhatsMyPublicIP",
-			"Enabled": true
+			"Name": "HTTPRequestForBlueprints",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/4a9830d1cea14a28bae31127f41a210b"
 		}
 	]
 }

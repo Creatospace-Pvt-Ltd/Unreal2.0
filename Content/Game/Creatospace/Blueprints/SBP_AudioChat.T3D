@@ -1,0 +1,3 @@
+Begin Object Class=/Script/Engine.SoundAttenuation Name="SBP_AudioChat"
+   Attenuation=(bEnablePriorityAttenuation=True,FalloffDistance=10000.000000)
+End Object

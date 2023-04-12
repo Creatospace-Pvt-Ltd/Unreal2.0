@@ -1,0 +1,26 @@
+Begin Object Class=/Script/Engine.UserDefinedStruct Name="User_Structure"
+   Begin Object Class=/Script/UnrealEd.UserDefinedStructEditorData Name="UserDefinedStructEditorData_0"
+   End Object
+   Begin Object Name="UserDefinedStructEditorData_0"
+      UniqueNameId=43
+      VariablesDescriptions(0)=(VarName="id_2_883C9B4A4D2D6CC50CEE19B2D406C4AF",VarGuid=883C9B4A4D2D6CC50CEE19B2D406C4AF,FriendlyName="id",Category="string")
+      VariablesDescriptions(1)=(VarName="email_7_4307537A4BA3F53263BE97BD3D830932",VarGuid=4307537A4BA3F53263BE97BD3D830932,FriendlyName="email",Category="string")
+      VariablesDescriptions(2)=(VarName="password_8_AFD6A5EA4C617F45E13EFAA46C2A6206",VarGuid=AFD6A5EA4C617F45E13EFAA46C2A6206,FriendlyName="password",Category="string")
+      VariablesDescriptions(3)=(VarName="fname_9_DDF0377F49CF6CB4645684865F6BD463",VarGuid=DDF0377F49CF6CB4645684865F6BD463,FriendlyName="fname",Category="string")
+      VariablesDescriptions(4)=(VarName="lname_10_CB8234024099E47A706F6BBF41C1922D",VarGuid=CB8234024099E47A706F6BBF41C1922D,FriendlyName="lname",Category="string")
+      VariablesDescriptions(5)=(VarName="profImg_34_8D39A720438163E39F7AB7A9A2DC2EA7",VarGuid=8D39A720438163E39F7AB7A9A2DC2EA7,FriendlyName="profImg",DefaultValue="{}",Category="struct",SubCategoryObject="/Script/JsonUtilities.JsonObjectWrapper",CurrentDefaultValue="{}")
+      VariablesDescriptions(6)=(VarName="coins_35_C011AA054C35EAB7D533D0B8AA17F4D2",VarGuid=C011AA054C35EAB7D533D0B8AA17F4D2,FriendlyName="coins",DefaultValue="0",Category="int",CurrentDefaultValue="0")
+      VariablesDescriptions(7)=(VarName="isCreator_36_BCAF099E4E80B4651181F98CA3DF43AE",VarGuid=BCAF099E4E80B4651181F98CA3DF43AE,FriendlyName="isCreator",DefaultValue="False",Category="bool",CurrentDefaultValue="False")
+      VariablesDescriptions(8)=(VarName="ch_18_7EA98DE34A4AB0F0D5A2A5AF6337F72D",VarGuid=7EA98DE34A4AB0F0D5A2A5AF6337F72D,FriendlyName="ch",Category="string")
+      VariablesDescriptions(9)=(VarName="creatorSubs_37_CAAA176943B0FD761A6854BF50A88EAC",VarGuid=CAAA176943B0FD761A6854BF50A88EAC,FriendlyName="creatorSubs",Category="string",ContainerType=Array)
+      VariablesDescriptions(10)=(VarName="isVerified_38_A7DE2DE8426D545E05E21584340304F3",VarGuid=A7DE2DE8426D545E05E21584340304F3,FriendlyName="isVerified",DefaultValue="False",Category="bool",CurrentDefaultValue="False")
+      VariablesDescriptions(11)=(VarName="events_39_64AC21264FF7D9D7A150D5B068D09718",VarGuid=64AC21264FF7D9D7A150D5B068D09718,FriendlyName="events",Category="string",ContainerType=Array)
+      VariablesDescriptions(12)=(VarName="createdAt_40_3A4E40CC41C116FBB1D4038D051F960C",VarGuid=3A4E40CC41C116FBB1D4038D051F960C,FriendlyName="createdAt",DefaultValue="0001.01.01-00.00.00",Category="struct",SubCategoryObject="/Script/CoreUObject.DateTime",CurrentDefaultValue="0001.01.01-00.00.00")
+      VariablesDescriptions(13)=(VarName="updatedAt_41_9D66556D40E2F97DDC9A028388D81B9F",VarGuid=9D66556D40E2F97DDC9A028388D81B9F,FriendlyName="updatedAt",DefaultValue="0001.01.01-00.00.00",Category="struct",SubCategoryObject="/Script/CoreUObject.DateTime",CurrentDefaultValue="0001.01.01-00.00.00")
+      VariablesDescriptions(14)=(VarName="__v_42_7E45662F4D1E1504F57A1BB920C3DEBD",VarGuid=7E45662F4D1E1504F57A1BB920C3DEBD,FriendlyName="__v",DefaultValue="0",Category="int",CurrentDefaultValue="0")
+      VariablesDescriptions(15)=(VarName="creatorID_33_F8C717DA408B6E0AE33067B7B9E8369A",VarGuid=F8C717DA408B6E0AE33067B7B9E8369A,FriendlyName="creatorID",Category="string")
+      ToolTip="User from MongoDB"
+   End Object
+   EditorData=UserDefinedStructEditorData'"UserDefinedStructEditorData_0"'
+   Guid=76AB875A4E8A903326FEE891042BA6EC
+End Object

@@ -15,7 +15,7 @@ AMPGPlayerController::AMPGPlayerController(const FObjectInitializer& ObjectIniti
 {
 	/* Initialize The Values */
 	//PawnToUseA = NULL;
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnClassFinder(TEXT("/Game/Creatospace/Blueprints/BP_RPM_ThirdPersonChar"));
+	//static ConstructorHelpers::FClassFinder<APawn> PlayerPawnClassFinder(TEXT("/Game/Creatospace/Blueprints/BP_RPM_ThirdPersonChar"));
 
 	/* Make sure the PawnClass is Replicated */
 	bReplicates = true;
