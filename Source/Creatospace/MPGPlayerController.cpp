@@ -84,7 +84,7 @@ void AMPGPlayerController::ManageNewPlayer(APlayerController* NewPlayer)
         if (UniqueNetId != nullptr) {
             IOnlineSubsystem* SubsystemRef = Online::GetSubsystem(NewPlayer->GetWorld());
             IOnlineSessionPtr SessionRef = SubsystemRef->GetSessionInterface();
-            bool bRegSuccess = SessionRef->RegisterPlayer(FName(NAME_GameSession), *UniqueNetId, false);
+            bool bRegSuccess = SessionRef->RegisterPlayer(FName("EOS_ExampleSession"), *UniqueNetId, false);
             if (bRegSuccess) {
                 UE_LOG(LogTemp, Warning, TEXT("Registration Successful!"));
             }

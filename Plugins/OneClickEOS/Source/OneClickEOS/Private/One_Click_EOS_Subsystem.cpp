@@ -87,9 +87,9 @@ void UOne_Click_EOS_Subsystem::Create_EOS_Session(bool bIsDedicatedServer, bool 
 			SessionCreationInfo.bAllowJoinViaPresence = bAllowJoinViaPresence;
 			SessionCreationInfo.bAllowJoinViaPresenceFriendsOnly = bAllowJoinViaPresenceFriendsOnly;
 			SessionCreationInfo.bShouldAdvertise = bShouldAdvertise;
-			SessionCreationInfo.Set(SEARCH_KEYWORDS, FName("EOS_GameSession").ToString(), EOnlineDataAdvertisementType::ViaOnlineService);
+			SessionCreationInfo.Set(SEARCH_KEYWORDS, FName("EOS_ExampleSession").ToString(), EOnlineDataAdvertisementType::ViaOnlineService);
 			SessionPtrRef->OnCreateSessionCompleteDelegates.AddUObject(this, &UOne_Click_EOS_Subsystem::OnCreateSessionCompleted);
-			SessionPtrRef->CreateSession(0, FName("EOS_GameSession"), SessionCreationInfo);
+			SessionPtrRef->CreateSession(0, FName("EOS_ExampleSession"), SessionCreationInfo);
 		}
 	}
 }
