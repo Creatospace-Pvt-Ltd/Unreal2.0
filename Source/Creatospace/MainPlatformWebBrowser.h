@@ -24,6 +24,9 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Bind Browser To Object"), Category = "Main Platform|Web Browser")
 		void BindBrowserToObject();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ready Player Me")
+		FString CommunityID = "";
+
 protected:
 	virtual TSharedRef<SWidget> RebuildWidget() override;
 

@@ -27,11 +27,11 @@ TSharedRef<SWidget> UMainPlatformWebBrowser::RebuildWidget()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Rebuild")));
 
-		FString UrlLink, UrlQueryString;
-		if (InitialURL.Split(TEXT("?"), &UrlLink, &UrlQueryString))
+		if (CommunityID!="")
 		{
-			InitialURL = UrlLink;
+			InitialURL += "feed/community/" + CommunityID;
 		}
+		
 
 	return Super::RebuildWidget();
 }
