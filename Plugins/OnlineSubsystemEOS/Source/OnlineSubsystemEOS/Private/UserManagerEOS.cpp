@@ -292,6 +292,7 @@ FString FUserManagerEOS::GetPlatformDisplayName(int32 LocalUserNum) const
 typedef TEOSCallback<EOS_Auth_OnLoginCallback, EOS_Auth_LoginCallbackInfo> FLoginCallback;
 typedef TEOSCallback<EOS_Connect_OnLoginCallback, EOS_Connect_LoginCallbackInfo> FConnectLoginCallback;
 typedef TEOSCallback<EOS_RTC_OnJoinRoomCallback, EOS_RTC_JoinRoomCallbackInfo> FJoinRoomCallback;
+typedef TEOSCallback<EOS_RTC_OnLeaveRoomCallback, EOS_RTC_LeaveRoomCallbackInfo> FLeaveRoomCallback;
 typedef TEOSCallback<EOS_RTCAdmin_OnQueryJoinRoomTokenCompleteCallback, EOS_RTCAdmin_QueryJoinRoomTokenCompleteCallbackInfo> FCreateRoomTokenCallback;
 typedef TEOSCallback<EOS_Connect_OnCreateUserCallback, EOS_Connect_CreateUserCallbackInfo> FCreateUserCallback;
 typedef TEOSCallback<EOS_Connect_OnCreateDeviceIdCallback, EOS_Connect_CreateDeviceIdCallbackInfo> FCreateDeviceIDCallback;
@@ -528,6 +529,32 @@ void FUserManagerEOS::JoinVoiceRoom(FString url, FString token, FString roomId)
 	EOS_RTC_JoinRoom(EOSSubsystem->RTCHandle, &joinRoomOptions, (void*)CallbackObj, CallbackObj->GetCallbackPtr());
 }
 
+void FUserManagerEOS::LeaveVoiceRoom(FString roomId)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Leave Voice Room Called!"));
+
+	FLeaveRoomCallback* CallbackObj = new FLeaveRoomCallback();
+
+	EOS_RTC_LeaveRoomOptions leaveRoomOptions;
+	leaveRoomOptions.ApiVersion = EOS_RTC_LEAVEROOM_API_LATEST;
+	leaveRoomOptions.LocalUserId = StringtoPUID(PUIDString);
+	char roomIDAnsi[EOS_OSS_STRING_BUFFER_LENGTH];
+	FCStringAnsi::Strncpy(roomIDAnsi, TCHAR_TO_ANSI(*roomId), EOS_OSS_STRING_BUFFER_LENGTH);
+	leaveRoomOptions.RoomName = roomIDAnsi;
+	
+
+	CallbackObj->CallbackLambda = [this](const EOS_RTC_LeaveRoomCallbackInfo* Data) {
+		if (Data->ResultCode == EOS_EResult::EOS_Success)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Left Voice Room!"));
+		}
+		else {
+			UE_LOG(LogTemp, Warning, TEXT("Result Code: %s"), UTF8_TO_TCHAR(EOS_EResult_ToString(Data->ResultCode)));
+		}
+	};
+
+	EOS_RTC_LeaveRoom(EOSSubsystem->RTCHandle, &leaveRoomOptions, (void*)CallbackObj, CallbackObj->GetCallbackPtr());
+}
 
 
 
@@ -736,6 +763,12 @@ bool FUserManagerEOS::Login(int32 LocalUserNum, const FOnlineAccountCredentials&
 		UE_LOG(LogTemp, Warning, TEXT("Login Device ID called!"));
 
 		CreateEOSVoiceRoomToken(AccountCredentials.Id);
+		return true;
+	}
+	else if (AccountCredentials.Type == TEXT("leaveRoom")) {
+		UE_LOG(LogTemp, Warning, TEXT("Leave Voice Room called!"));
+
+		LeaveVoiceRoom(AccountCredentials.Id);
 		return true;
 	}
 	else {
