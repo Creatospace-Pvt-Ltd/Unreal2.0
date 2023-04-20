@@ -411,8 +411,10 @@ FString FUserManagerEOS::PUIDtoSTring(EOS_ProductUserId puid) {
 		UE_LOG(LogTemp, Warning, TEXT("puid to string SUCCESS!"));
 		
 		//const ANSICHAR* Str = UTF8_TO_TCHAR(*outbuffer);
-		FString out = &outbuffer;
-		UE_LOG(LogTemp, Warning, TEXT("puid to string: %s"), &outbuffer);
+		//char* buffer = &outbuffer;
+		std::string arr = &outbuffer;
+		FString out = arr.c_str();
+		UE_LOG(LogTemp, Warning, TEXT("puid to string: %s"), arr.c_str());
 		return out;
 	}
 	else {
@@ -422,8 +424,9 @@ FString FUserManagerEOS::PUIDtoSTring(EOS_ProductUserId puid) {
 }
 
 EOS_ProductUserId FUserManagerEOS::StringtoPUID(FString id) {
-	char* puid = TCHAR_TO_UTF8(*id);
-	return EOS_ProductUserId_FromString(puid);
+	char IDAnsi[EOS_OSS_STRING_BUFFER_LENGTH];
+	FCStringAnsi::Strncpy(IDAnsi, TCHAR_TO_ANSI(*id), EOS_OSS_STRING_BUFFER_LENGTH);
+	return EOS_ProductUserId_FromString(IDAnsi);
 }
 
 void FUserManagerEOS::CreateEOSVoiceRoomToken(FString clientID)
