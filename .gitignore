@@ -26,6 +26,8 @@ Android Client
 Android Development
 Android Standalone
 PackagedClient
+PackagedServer
+PackagedStandalone
 .vscode
 .vs
 *.VC.db

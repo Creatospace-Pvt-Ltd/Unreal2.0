@@ -507,7 +507,6 @@ void FUserManagerEOS::JoinVoiceRoom(FString url, FString token, FString roomId)
 	joinRoomOptions.ClientBaseUrl = urlAnsi;
 
 	uint32_t OverlayFlags = 0;
-	OverlayFlags |= EOS_RTC_JOINROOMFLAGS_ENABLE_ECHO;
 	joinRoomOptions.Flags = OverlayFlags;
 	joinRoomOptions.LocalUserId = StringtoPUID(PUIDString);
 	joinRoomOptions.ParticipantId = StringtoPUID(PUIDString);
