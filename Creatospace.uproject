@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{D504AC97-4650-2547-C575-6A9BDDC25EFE}",
+	"EngineAssociation": "{ADBE92CF-4EDA-3C31-B5CE-E997889F9B29}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -52,10 +52,6 @@
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/f837e4835fbc434a853fe1ead2410b84"
 		},
 		{
-			"Name": "OnlineSubsystemEOS",
-			"Enabled": true
-		},
-		{
 			"Name": "SoundUtilities",
 			"Enabled": true
 		},
@@ -69,10 +65,6 @@
 		},
 		{
 			"Name": "GLTFImporter",
-			"Enabled": true
-		},
-		{
-			"Name": "OnlineServicesEOS",
 			"Enabled": true
 		},
 		{
@@ -91,6 +83,19 @@
 			"Name": "HTTPRequestForBlueprints",
 			"Enabled": true,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/4a9830d1cea14a28bae31127f41a210b"
+		},
+		{
+			"Name": "Bridge",
+			"Enabled": false,
+			"SupportedTargetPlatforms": [
+				"Win64",
+				"Mac",
+				"Linux"
+			]
+		},
+		{
+			"Name": "ChaosEditor",
+			"Enabled": false
 		}
 	]
 }
