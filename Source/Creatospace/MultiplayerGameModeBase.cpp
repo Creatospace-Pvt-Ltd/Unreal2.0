@@ -39,9 +39,23 @@ AMultiplayerGameModeBase::AMultiplayerGameModeBase(const FObjectInitializer& Obj
     FProcessParameters* params = new FProcessParameters();
     params->OnStartGameSession.BindLambda(onGameSession);
 
-    //OnProcessTerminate callback. GameLift invokes this before shutting down the instance 
-    //that is hosting this game server to give it time to gracefully shut down on its own. 
-    //In this example, we simply tell GameLift we are indeed going to shut down.
+
+    FString commandLine = UKismetSystemLibrary::GetCommandLine();
+
+    FString newport;
+    TArray<FString> commandLineArgs;
+    commandLine.ParseIntoArray(commandLineArgs, TEXT(" "));
+
+    // Parse launch parameters for port
+    for (const FString& arg : commandLineArgs)
+    {
+        if (arg.StartsWith("-port="))
+        {
+            newport = arg.Mid(6);
+            break;
+        }
+    }
+
     params->OnTerminate.BindLambda([=]() {gameLiftSdkModule->ProcessEnding(); });
 
     //HealthCheck callback. GameLift invokes this callback about every 60 seconds. By default, 
@@ -57,7 +71,7 @@ AMultiplayerGameModeBase::AMultiplayerGameModeBase(const FObjectInitializer& Obj
     //from a range, such as:
     // const int32 port = FURL::UrlConfig.DefaultPort;
     // params->port;
-    params->port = 7777;
+    params->port = FCString::Atoi(*newport);
 
     //Here, the game server tells GameLift what set of files to upload when the game session 
     //ends. GameLift uploads everything specified here for the developers to fetch later.
@@ -67,6 +81,7 @@ AMultiplayerGameModeBase::AMultiplayerGameModeBase(const FObjectInitializer& Obj
 
     //Call ProcessReady to tell GameLift this game server is ready to receive game sessions!
     gameLiftSdkModule->ProcessReady(*params);
+
 #endif
 }
 
@@ -78,6 +93,21 @@ AMultiplayerGameModeBase::AMultiplayerGameModeBase(const FObjectInitializer& Obj
 	/* If we don't get the right Controller, use the Default Pawn */
 	//return DefaultPawnClass;
 //}
+
+void AMultiplayerGameModeBase::InitGamelift(int port)
+{
+#if WITH_GAMELIFT
+    FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+
+    FProcessParameters* params = new FProcessParameters();
+    //params->OnStartGameSession.BindLambda(onGameSession);
+
+    //OnProcessTerminate callback. GameLift invokes this before shutting down the instance 
+    //that is hosting this game server to give it time to gracefully shut down on its own. 
+    //In this example, we simply tell GameLift we are indeed going to shut down.
+    
+#endif
+}
 
 void AMultiplayerGameModeBase::ChangeServerMap(FString MapName) 
 {
