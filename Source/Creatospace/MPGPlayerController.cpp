@@ -55,7 +55,9 @@ void AMPGPlayerController::ManageNewPlayer(APlayerController* NewPlayer)
 
     if (NewPlayer)
     {
+        //These lines are required commented out only for testing purpose
 
+        /*
         FUniqueNetIdRepl UniqueNetIDRepl;
         if (NewPlayer->IsLocalController()) {
 
@@ -95,6 +97,7 @@ void AMPGPlayerController::ManageNewPlayer(APlayerController* NewPlayer)
         else {
             UE_LOG(LogTemp, Warning, TEXT("Unique ID is null ptr!"));
         }
+        */
     }
 }
 
