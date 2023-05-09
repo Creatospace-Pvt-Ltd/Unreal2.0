@@ -17,6 +17,9 @@ class CREATOSPACE_API AMultiplayerGameModeBase : public AGameModeBase
 		/* Override To Read In Pawn From Custom Controller */
 		//UClass* GetDefaultPawnClassForController(AController* InController);
 public:
+
+	UFUNCTION(BlueprintCallable, Category = "Dedicated Server")
+		void InitGamelift(int port);
 	
 	UFUNCTION(BlueprintCallable, Category = "Dedicated Server")
 		void HandleNewPlayer(APlayerController* NewPlayer);
