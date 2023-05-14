@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+//#include "GameFramework/PlayerController.h"
 #include "ExampleCharacter.generated.h"
 
 UCLASS(config = Game)
@@ -27,6 +28,26 @@ public:
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Input)
 		float TurnRateGamepad;
+
+	/* Testing code for player controller*/
+
+	/* Constructor */
+	//AMPGPlayerController(const FObjectInitializer& ObjectInitializer);
+
+	UFUNCTION(BlueprintCallable, Category = "Dedicated Server")
+	void AcceptClient(FString ClientID);
+
+	UFUNCTION(BlueprintCallable, Category = "Dedicated Server")
+	void TerminateGameSession();
+
+	UFUNCTION(BlueprintCallable, Category = "Dedicated Server")
+	void RemovePlayerSession(FString SessionId);
+
+	UFUNCTION(BlueprintCallable, Category = "Dedicated Server")
+	void ManageNewPlayer(APlayerController* NewPlayer);
+
+	UFUNCTION(BlueprintCallable, Category = "Dedicated Server")
+	void StartVoice();
 
 protected:
 

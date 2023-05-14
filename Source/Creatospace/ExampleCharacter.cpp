@@ -3,6 +3,14 @@
 
 #include "ExampleCharacter.h"
 #include "Camera/CameraComponent.h"
+#include <Net/UnrealNetwork.h>
+#include "Engine/World.h"
+#include "MultiplayerGameModeBase.h"
+#include "EngineGlobals.h"
+#include "GameLiftServerSDK.h"
+#include "OnlineSubsystemUtils.h"
+#include "Interfaces/OnlineIdentityInterface.h"
+#include "OnlineSubsystem.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -134,3 +142,89 @@ void AExampleCharacter::MoveRight(float Value)
 	}
 }
 
+/* This is the testing code for player controller */
+
+void AExampleCharacter::AcceptClient(FString ClientID)
+{
+	//Getting the module first.
+	FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+
+	gameLiftSdkModule->AcceptPlayerSession(ClientID);
+
+	UE_LOG(LogTemp, Warning, TEXT("client accepted"));
+}
+
+void AExampleCharacter::TerminateGameSession()
+{
+	FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+
+	gameLiftSdkModule->ProcessEnding();
+
+	UE_LOG(LogTemp, Warning, TEXT("game session terminated"));
+}
+
+void AExampleCharacter::RemovePlayerSession(FString SessionId)
+{
+	FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+
+	gameLiftSdkModule->RemovePlayerSession(SessionId);
+
+	UE_LOG(LogTemp, Warning, TEXT("player session terminated"));
+}
+
+void AExampleCharacter::ManageNewPlayer(APlayerController* NewPlayer)
+{
+	// Super::HandleStartingNewPlayer(NewPlayer);
+
+	if (NewPlayer)
+	{
+		//These lines are required commented out only for testing purpose
+
+		/*
+		FUniqueNetIdRepl UniqueNetIDRepl;
+		if (NewPlayer->IsLocalController()) {
+
+			ULocalPlayer* LocalPlayerRef = NewPlayer->GetLocalPlayer();
+			if (LocalPlayerRef) {
+				UniqueNetIDRepl = LocalPlayerRef->GetPreferredUniqueNetId();
+			}
+			else {
+				UNetConnection* RemoteNetConnecionRef = Cast<UNetConnection>(NewPlayer->Player);
+				UE_LOG(LogTemp, Warning, TEXT("1"));
+				if (IsValid(RemoteNetConnecionRef)) {
+					UniqueNetIDRepl = RemoteNetConnecionRef->PlayerId;
+					UE_LOG(LogTemp, Warning, TEXT("2"));
+				}
+			}
+		}
+		else {
+			UNetConnection* RemoteNetConnecionRef = Cast<UNetConnection>(NewPlayer->Player);
+			UE_LOG(LogTemp, Warning, TEXT("4"));
+			if (IsValid(RemoteNetConnecionRef)) {
+				UniqueNetIDRepl = RemoteNetConnecionRef->PlayerId;
+				UE_LOG(LogTemp, Warning, TEXT("UniqueIdRepl %s"), *UniqueNetIDRepl.ToString());
+			}
+		}
+		TSharedPtr<const FUniqueNetId> UniqueNetId = UniqueNetIDRepl.GetUniqueNetId();
+		if (UniqueNetId != nullptr) {
+			IOnlineSubsystem* SubsystemRef = Online::GetSubsystem(NewPlayer->GetWorld());
+			IOnlineSessionPtr SessionRef = SubsystemRef->GetSessionInterface();
+			bool bRegSuccess = SessionRef->RegisterPlayer(FName("EOS_ExampleSession"), *UniqueNetId, false);
+			if (bRegSuccess) {
+				UE_LOG(LogTemp, Warning, TEXT("Registration Successful!"));
+			}
+			else {
+				UE_LOG(LogTemp, Warning, TEXT("Registration Nahi hua!"));
+			}
+		}
+		else {
+			UE_LOG(LogTemp, Warning, TEXT("Unique ID is null ptr!"));
+		}
+		*/
+	}
+}
+
+void AExampleCharacter::StartVoice()
+{
+
+}
