@@ -54,6 +54,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ExposeOnSpawn = true), Category = "glTFRuntime")
 	FglTFRuntimeSkeletalAnimationConfig SkeletalAnimationConfig;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ExposeOnSpawn = true), Category = "glTFRuntime")
+	FglTFRuntimeLightConfig LightConfig;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "glTFRuntime")
 	TMap<USceneComponent*, UglTFRuntimeAnimationCurve*> CurveBasedAnimations;
 
@@ -77,6 +80,21 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ExposeOnSpawn = true), Category = "glTFRuntime")
 	bool bAllowPoseAnimations;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ExposeOnSpawn = true), Category = "glTFRuntime")
+	bool bAllowCameras;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ExposeOnSpawn = true), Category = "glTFRuntime")
+	bool bAllowLights;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ExposeOnSpawn = true), Category = "glTFRuntime")
+	bool bForceSkinnedMeshToRoot;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ExposeOnSpawn = true), Category = "glTFRuntime")
+	int32 RootNodeIndex;
+
+	DECLARE_MULTICAST_DELEGATE_TwoParams(FglTFRuntimeAssetActorNodeProcessed, const FglTFRuntimeNode&, USceneComponent*);
+	FglTFRuntimeAssetActorNodeProcessed OnNodeProcessed;
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category="glTFRuntime")

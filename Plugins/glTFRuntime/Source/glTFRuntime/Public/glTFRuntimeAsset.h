@@ -82,6 +82,12 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "SkeletonConfig", AutoCreateRefTerm = "SkeletonConfig"), Category = "glTFRuntime")
 	USkeleton* LoadSkeleton(const int32 SkinIndex, const FglTFRuntimeSkeletonConfig& SkeletonConfig);
 
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "SkeletonConfig", AutoCreateRefTerm = "SkeletonConfig"), Category = "glTFRuntime")
+	USkeleton* LoadSkeletonFromNodeTree(const int32 NodeIndex, const FglTFRuntimeSkeletonConfig& SkeletonConfig);
+
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "SkeletonConfig", AutoCreateRefTerm = "SkeletonConfig"), Category = "glTFRuntime")
+	USkeleton* LoadSkeletonFromNodeTreeByName(const FString& NodeName, const FglTFRuntimeSkeletonConfig& SkeletonConfig);
+
 	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "SkeletalMeshConfig", AutoCreateRefTerm = "SkeletalMeshConfig"), Category = "glTFRuntime")
 	USkeletalMesh* LoadSkeletalMeshLODs(const TArray<int32>& MeshIndices, const int32 SkinIndex, const FglTFRuntimeSkeletalMeshConfig& SkeletalMeshConfig);
 
@@ -129,6 +135,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "glTFRuntime")
 	bool GetNodeExtensionIndices(const int32 NodeIndex, const FString& ExtensionName, const FString& FieldName, TArray<int32>& Indices);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "glTFRuntime")
+	bool GetNodeExtensionIndex(const int32 NodeIndex, const FString& ExtensionName, const FString& FieldName, int32& Index);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "glTFRuntime")
+	bool GetNodeExtrasNumbers(const int32 NodeIndex, const FString& Key, TArray<float>& Values);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "glTFRuntime")
 	bool BuildTransformFromNodeBackward(const int32 NodeIndex, FTransform& Transform);
@@ -186,6 +198,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "glTFRuntime")
 	bool LoadAudioEmitter(const int32 EmitterIndex, FglTFRuntimeAudioEmitter& Emitter);
+
+	UFUNCTION(BlueprintCallable, meta = (AdvancedDisplay = "LightConfig", AutoCreateRefTerm = "LightConfig"), Category = "glTFRuntime")
+	ULightComponent* LoadPunctualLight(const int32 PunctualLightIndex, AActor* Actor, const FglTFRuntimeLightConfig& LightConfig);
 
 	UFUNCTION(BlueprintCallable, Category = "glTFRuntime")
 	bool LoadEmitterIntoAudioComponent(const FglTFRuntimeAudioEmitter& Emitter, UAudioComponent* AudioComponent);

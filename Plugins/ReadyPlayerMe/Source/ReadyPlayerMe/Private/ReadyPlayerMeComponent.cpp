@@ -2,20 +2,21 @@
 
 #include "ReadyPlayerMeComponent.h"
 #include "ReadyPlayerMeAvatarLoader.h"
-#include "ReadyPlayerMeRenderLoader.h"
-#include "Utils/ReadyPlayerMeGlTFConfigCreator.h"
-#include "Utils/ReadyPlayerMeUrlConvertor.h"
-#include "Utils/ReadyPlayerMeMetadataExtractor.h"
+#include "ReadyPlayerMeMemoryCache.h"
+#include "ReadyPlayerMeGameSubsystem.h"
 #include "glTFRuntimeAsset.h"
 #include "UObject/UObjectGlobals.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Media/Public/IMediaTracks.h"
 
 UReadyPlayerMeComponent::UReadyPlayerMeComponent()
+	: TargetSkeleton(nullptr)
+	, AvatarConfig(nullptr)
+	, SkeletalMeshComponent(nullptr)
+	, bUseMemoryCache(false)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	OnAvatarDownloadCompleted.BindDynamic(this, &UReadyPlayerMeComponent::OnAvatarDownloaded);
-	OnSkeletalMeshCallback.BindDynamic(this, &UReadyPlayerMeComponent::OnSkeletalMeshLoaded);
 }
 
 void UReadyPlayerMeComponent::LoadAvatar(const FAvatarLoadCompleted& OnLoadCompleted, const FAvatarLoadFailed& OnLoadFailed)
@@ -32,8 +33,23 @@ void UReadyPlayerMeComponent::LoadAvatar(const FAvatarLoadCompleted& OnLoadCompl
 	}
 
 	OnAvatarLoadCompleted = OnLoadCompleted;
+
+	if (bUseMemoryCache)
+	{
+		const UReadyPlayerMeGameSubsystem* GameSubsystem = UGameInstance::GetSubsystem<UReadyPlayerMeGameSubsystem>(GetWorld()->GetGameInstance());
+		if (IsValid(GameSubsystem))
+		{
+			const FAvatarMemoryCacheData CacheData = GameSubsystem->MemoryCache->GetAvatarCacheData(UrlShortcode, AvatarConfig);
+			if (IsValid(CacheData.SkeletalMesh))
+			{
+				SetAvatarData(CacheData.SkeletalMesh, CacheData.Metadata);
+				return;
+			}
+		}
+	}
+
 	AvatarLoader = NewObject<UReadyPlayerMeAvatarLoader>(this,TEXT("AvatarLoader"));
-	AvatarLoader->LoadAvatar(UrlShortcode, AvatarConfig, OnAvatarDownloadCompleted, OnLoadFailed);
+	AvatarLoader->LoadAvatar(UrlShortcode, AvatarConfig, TargetSkeleton, SkeletalMeshConfig, OnAvatarDownloadCompleted, OnLoadFailed);
 }
 
 void UReadyPlayerMeComponent::LoadNewAvatar(const FString& Url, const FAvatarLoadCompleted& OnLoadCompleted, const FAvatarLoadFailed& OnLoadFailed)
@@ -50,24 +66,22 @@ void UReadyPlayerMeComponent::CancelAvatarLoad()
 	}
 }
 
-void UReadyPlayerMeComponent::OnAvatarDownloaded(UglTFRuntimeAsset* Asset, const FAvatarMetadata& Metadata)
+void UReadyPlayerMeComponent::OnAvatarDownloaded(USkeletalMesh* SkeletalMesh, const FAvatarMetadata& Metadata)
+{
+	if (bUseMemoryCache)
+	{
+		const UReadyPlayerMeGameSubsystem* GameSubsystem = UGameInstance::GetSubsystem<UReadyPlayerMeGameSubsystem>(GetWorld()->GetGameInstance());
+		if (IsValid(GameSubsystem))
+		{
+			GameSubsystem->MemoryCache->AddAvatar(UrlShortcode, AvatarConfig, SkeletalMesh, Metadata);
+		}
+	}
+	SetAvatarData(SkeletalMesh, Metadata);
+}
+
+void UReadyPlayerMeComponent::SetAvatarData(USkeletalMesh* SkeletalMesh, const FAvatarMetadata& Metadata)
 {
 	AvatarMetadata = Metadata;
-	LoadSkeletalMesh(Asset);
-}
-
-void UReadyPlayerMeComponent::LoadSkeletalMesh(UglTFRuntimeAsset* Asset)
-{
-	if (AvatarMetadata.BodyType == EAvatarBodyType::Undefined)
-	{
-		AvatarMetadata.BodyType = FReadyPlayerMeMetadataExtractor::GetBodyTypeFromAsset(Asset);
-	}
-	const FString RootBoneName = FReadyPlayerMeMetadataExtractor::GetRootBoneName(AvatarMetadata.BodyType);
-	Asset->LoadSkeletalMeshRecursiveAsync(RootBoneName, {}, OnSkeletalMeshCallback, FReadyPlayerMeGlTFConfigCreator::GetGlTFRuntimeSkeletalMeshConfig(RootBoneName, TargetSkeleton));
-}
-
-void UReadyPlayerMeComponent::OnSkeletalMeshLoaded(USkeletalMesh* SkeletalMesh)
-{
 	InitSkeletalMeshComponent();
 	SkeletalMeshComponent->SetSkeletalMesh(SkeletalMesh);
 	(void)OnAvatarLoadCompleted.ExecuteIfBound();
@@ -75,6 +89,10 @@ void UReadyPlayerMeComponent::OnSkeletalMeshLoaded(USkeletalMesh* SkeletalMesh)
 
 void UReadyPlayerMeComponent::InitSkeletalMeshComponent()
 {
+	if (IsValid(SkeletalMeshComponent))
+	{
+		return;
+	}
 	AActor* ThisActor = GetOwner();
 	SkeletalMeshComponent = ThisActor->FindComponentByClass<USkeletalMeshComponent>();
 	if (!SkeletalMeshComponent)
@@ -83,16 +101,4 @@ void UReadyPlayerMeComponent::InitSkeletalMeshComponent()
 		SkeletalMeshComponent->SetupAttachment(ThisActor->GetRootComponent());
 		SkeletalMeshComponent->RegisterComponent();
 	}
-}
-
-void UReadyPlayerMeComponent::LoadRender(const ERenderSceneType& SceneType, const FDownloadImageCompleted& OnCompleted, const FDownloadImageFailed& OnFailed)
-{
-	UrlShortcode = FReadyPlayerMeUrlConvertor::GetValidatedUrlShortCode(UrlShortcode);
-	if (UrlShortcode.IsEmpty())
-	{
-		(void)OnFailed.ExecuteIfBound("Url invalid");
-		return;
-	}
-	RenderLoader = NewObject<UReadyPlayerMeRenderLoader>(this,TEXT("RenderLoader"));
-	RenderLoader->Load(UrlShortcode, SceneType, AvatarMetadata.OutfitGender, OnCompleted, OnFailed);
 }

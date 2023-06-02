@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{ADBE92CF-4EDA-3C31-B5CE-E997889F9B29}",
+	"EngineAssociation": "{D504AC97-4650-2547-C575-6A9BDDC25EFE}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -85,17 +85,20 @@
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/4a9830d1cea14a28bae31127f41a210b"
 		},
 		{
-			"Name": "Bridge",
-			"Enabled": false,
-			"SupportedTargetPlatforms": [
-				"Win64",
-				"Mac",
-				"Linux"
-			]
-		},
-		{
 			"Name": "ChaosEditor",
 			"Enabled": false
+		},
+		{
+			"Name": "OnlineSubsystemEOS",
+			"Enabled": true
+		},
+		{
+			"Name": "SocketSubsystemEOS",
+			"Enabled": true
+		},
+		{
+			"Name": "OnlineServicesOSSAdapter",
+			"Enabled": true
 		}
 	]
 }

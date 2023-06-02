@@ -7,6 +7,7 @@ public class ReadyPlayerMe : ModuleRules
 	public ReadyPlayerMe(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+		bUseUnity = false;
 
 		PublicIncludePaths.AddRange(
 			new string[] {
@@ -41,15 +42,10 @@ public class ReadyPlayerMe : ModuleRules
 				"Json",
 				"JsonUtilities",
 				"HTTP",
-				"UMG",
-				"Projects"
-				// ... add private dependencies that you statically link with here ...	
+				"Projects",
+				"DeveloperSettings"
 			}
 			);
-
-#if UE_4_26_OR_LATER
-		PrivateDependencyModuleNames.Add("DeveloperSettings");
-#endif
 
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]

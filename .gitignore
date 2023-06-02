@@ -27,6 +27,8 @@ Android Development
 Android Standalone
 PackagedClient
 PackagedServer
+PackagedClient 2.0
+PackagedServer 2.0
 PackagedStandalone
 .vscode
 .vs

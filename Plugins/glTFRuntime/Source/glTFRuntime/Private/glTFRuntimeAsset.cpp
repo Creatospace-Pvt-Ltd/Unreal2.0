@@ -326,6 +326,32 @@ USkeleton* UglTFRuntimeAsset::LoadSkeleton(const int32 SkinIndex, const FglTFRun
 	return Parser->LoadSkeleton(SkinIndex, SkeletonConfig);
 }
 
+USkeleton* UglTFRuntimeAsset::LoadSkeletonFromNodeTree(const int32 NodeIndex, const FglTFRuntimeSkeletonConfig& SkeletonConfig)
+{
+	GLTF_CHECK_PARSER(nullptr);
+
+	FglTFRuntimeNode Node;
+	if (!Parser->LoadNode(NodeIndex, Node))
+	{
+		return nullptr;
+	}
+
+	return Parser->LoadSkeletonFromNode(Node, SkeletonConfig);
+}
+
+USkeleton* UglTFRuntimeAsset::LoadSkeletonFromNodeTreeByName(const FString& NodeName, const FglTFRuntimeSkeletonConfig& SkeletonConfig)
+{
+	GLTF_CHECK_PARSER(nullptr);
+
+	FglTFRuntimeNode Node;
+	if (!Parser->LoadNodeByName(NodeName, Node))
+	{
+		return nullptr;
+	}
+
+	return Parser->LoadSkeletonFromNode(Node, SkeletonConfig);
+}
+
 UAnimSequence* UglTFRuntimeAsset::LoadSkeletalAnimation(USkeletalMesh* SkeletalMesh, const int32 AnimationIndex, const FglTFRuntimeSkeletalAnimationConfig& SkeletalAnimationConfig)
 {
 	GLTF_CHECK_PARSER(nullptr);
@@ -521,6 +547,12 @@ bool UglTFRuntimeAsset::LoadAudioEmitter(const int32 EmitterIndex, FglTFRuntimeA
 {
 	GLTF_CHECK_PARSER(false);
 	return Parser->LoadAudioEmitter(EmitterIndex, Emitter);
+}
+
+ULightComponent* UglTFRuntimeAsset::LoadPunctualLight(const int32 PunctualLightIndex, AActor* Actor, const FglTFRuntimeLightConfig& LightConfig)
+{
+	GLTF_CHECK_PARSER(nullptr);
+	return Parser->LoadPunctualLight(PunctualLightIndex, Actor, LightConfig);
 }
 
 bool UglTFRuntimeAsset::LoadEmitterIntoAudioComponent(const FglTFRuntimeAudioEmitter& Emitter, UAudioComponent* AudioComponent)
@@ -774,4 +806,53 @@ bool UglTFRuntimeAsset::GetNodeExtensionIndices(const int32 NodeIndex, const FSt
 
 	Indices = Parser->GetJsonExtensionObjectIndices(NodeObject.ToSharedRef(), ExtensionName, FieldName);
 	return true;
+}
+
+bool UglTFRuntimeAsset::GetNodeExtrasNumbers(const int32 NodeIndex, const FString& Key, TArray<float>& Values)
+{
+	GLTF_CHECK_PARSER(false);
+
+	TSharedPtr<FJsonObject> NodeObject = Parser->GetNodeObject(NodeIndex);
+	if (!NodeObject)
+	{
+		return false;
+	}
+
+	TSharedPtr<FJsonObject> NodeExtrasObject = Parser->GetJsonObjectExtras(NodeObject.ToSharedRef());
+	if (!NodeExtrasObject)
+	{
+		return false;
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* JsonArray = nullptr;
+	if (!NodeExtrasObject->TryGetArrayField(Key, JsonArray))
+	{
+		return false;
+	}
+
+	for (const TSharedPtr<FJsonValue>& JsonItem : *JsonArray)
+	{
+		double Value = 0;
+		if (!JsonItem->TryGetNumber(Value))
+		{
+			return false;
+		}
+		Values.Add(Value);
+	}
+
+	return true;
+}
+
+bool UglTFRuntimeAsset::GetNodeExtensionIndex(const int32 NodeIndex, const FString& ExtensionName, const FString& FieldName, int32& Index)
+{
+	GLTF_CHECK_PARSER(false);
+
+	TSharedPtr<FJsonObject> NodeObject = Parser->GetNodeObject(NodeIndex);
+	if (!NodeObject)
+	{
+		return false;
+	}
+
+	Index = Parser->GetJsonExtensionObjectIndex(NodeObject.ToSharedRef(), ExtensionName, FieldName, INDEX_NONE);
+	return Index > INDEX_NONE;
 }

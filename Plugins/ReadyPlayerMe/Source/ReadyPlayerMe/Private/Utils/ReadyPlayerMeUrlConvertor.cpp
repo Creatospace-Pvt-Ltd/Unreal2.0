@@ -5,8 +5,9 @@
 
 #include "ReadyPlayerMeAvatarConfigProcessor.h"
 #include "Internationalization/Regex.h"
+#include "Misc/Paths.h"
 
-static const FString SHORTCODE_URL_PREFIX = "https://api.readyplayer.me/v1/avatars/";
+static const FString SHORTCODE_URL_PREFIX = "https://models.readyplayer.me/";
 static const FString URL_PATTERN = "https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,4}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)";
 static const FString SHORTCODE_PATTERN = "^[a-zA-Z0-9]*$";
 static const TCHAR* SUFFIX_GLB = TEXT(".glb");
@@ -39,6 +40,20 @@ bool FReadyPlayerMeUrlConvertor::IsUrl(const FString& Url)
 	const FRegexPattern RegexPattern(URL_PATTERN);
 	FRegexMatcher RegexMatcher(RegexPattern, Url);
 	return RegexMatcher.FindNext();
+}
+
+FString FReadyPlayerMeUrlConvertor::GetAvatarGuid(const FString& UrlShortcode)
+{
+	if (UrlShortcode.IsEmpty())
+	{
+		return "";
+	}
+	if (IsShortcode(UrlShortcode))
+	{
+		return UrlShortcode;
+	}
+	const FAvatarUri Uri = CreateAvatarUri(UrlShortcode, nullptr);
+	return Uri.Guid;
 }
 
 FAvatarUri FReadyPlayerMeUrlConvertor::CreateAvatarUri(const FString& Url, UReadyPlayerMeAvatarConfig* AvatarConfig)
