@@ -1,6 +1,8 @@
 # Binary Files
 Binaries/*
 Plugins/*/Binaries/*
+Plugins/Convai
+Content/MetaHumans
 
 # Builds
 Build/*
