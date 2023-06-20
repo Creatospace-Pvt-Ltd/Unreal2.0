@@ -10,7 +10,7 @@ class FReadyPlayerMeAvatarCacheHandler
 public:
 	explicit FReadyPlayerMeAvatarCacheHandler(const FAvatarUri& AvatarUri);
 
-	void SetUpdatedMetadataStr(const FString& MetadataJson, const FString& UpdatedDate);
+	void SetUpdatedMetadataStr(const FString& MetadataJson, const FString& LastModifiedDate);
 	void SetModelData(const TArray<uint8>* Data);
 
 	void SaveAvatarInCache() const;
@@ -24,7 +24,7 @@ public:
 	static bool IsCachingEnabled();
 
 private:
-	bool IsMedataUpdated(const FString& UpdatedDate) const;
+	bool IsMetadataChanged(const FString& LastModifiedDate) const;
 	
 	const FAvatarUri AvatarUri;
 

@@ -22,8 +22,6 @@ AglTFRuntimeAssetActor::AglTFRuntimeAssetActor()
 	bAllowPoseAnimations = true;
 	bAllowCameras = true;
 	bAllowLights = true;
-	bForceSkinnedMeshToRoot = false;
-	RootNodeIndex = INDEX_NONE;
 }
 
 // Called when the game starts or when spawned
@@ -38,34 +36,21 @@ void AglTFRuntimeAssetActor::BeginPlay()
 
 	double LoadingStartTime = FPlatformTime::Seconds();
 
-	if (RootNodeIndex > INDEX_NONE)
+	TArray<FglTFRuntimeScene> Scenes = Asset->GetScenes();
+	for (FglTFRuntimeScene& Scene : Scenes)
 	{
-		FglTFRuntimeNode Node;
-		if (!Asset->GetNode(RootNodeIndex, Node))
+		USceneComponent* SceneComponent = NewObject<USceneComponent>(this, *FString::Printf(TEXT("Scene %d"), Scene.Index));
+		SceneComponent->SetupAttachment(RootComponent);
+		SceneComponent->RegisterComponent();
+		AddInstanceComponent(SceneComponent);
+		for (int32 NodeIndex : Scene.RootNodesIndices)
 		{
-			return;
-		}
-		AssetRoot = nullptr;
-		ProcessNode(nullptr, NAME_None, Node);
-	}
-	else
-	{
-		TArray<FglTFRuntimeScene> Scenes = Asset->GetScenes();
-		for (FglTFRuntimeScene& Scene : Scenes)
-		{
-			USceneComponent* SceneComponent = NewObject<USceneComponent>(this, *FString::Printf(TEXT("Scene %d"), Scene.Index));
-			SceneComponent->SetupAttachment(RootComponent);
-			SceneComponent->RegisterComponent();
-			AddInstanceComponent(SceneComponent);
-			for (int32 NodeIndex : Scene.RootNodesIndices)
+			FglTFRuntimeNode Node;
+			if (!Asset->GetNode(NodeIndex, Node))
 			{
-				FglTFRuntimeNode Node;
-				if (!Asset->GetNode(NodeIndex, Node))
-				{
-					return;
-				}
-				ProcessNode(SceneComponent, NAME_None, Node);
+				return;
 			}
+			ProcessNode(SceneComponent, NAME_None, Node);
 		}
 	}
 
@@ -107,14 +92,7 @@ void AglTFRuntimeAssetActor::ProcessNode(USceneComponent* NodeParentComponent, c
 	if (bAllowCameras && Node.CameraIndex != INDEX_NONE)
 	{
 		UCameraComponent* NewCameraComponent = NewObject<UCameraComponent>(this, GetSafeNodeName<UCameraComponent>(Node));
-		if (!NodeParentComponent)
-		{
-			SetRootComponent(NewCameraComponent);
-		}
-		else
-		{
-			NewCameraComponent->SetupAttachment(NodeParentComponent);
-		}
+		NewCameraComponent->SetupAttachment(NodeParentComponent);
 		NewCameraComponent->RegisterComponent();
 		NewCameraComponent->SetRelativeTransform(Node.Transform);
 		AddInstanceComponent(NewCameraComponent);
@@ -125,14 +103,7 @@ void AglTFRuntimeAssetActor::ProcessNode(USceneComponent* NodeParentComponent, c
 	else if (Node.MeshIndex < 0)
 	{
 		NewComponent = NewObject<USceneComponent>(this, GetSafeNodeName<USceneComponent>(Node));
-		if (!NodeParentComponent)
-		{
-			SetRootComponent(NewComponent);
-		}
-		else
-		{
-			NewComponent->SetupAttachment(NodeParentComponent);
-		}
+		NewComponent->SetupAttachment(NodeParentComponent);
 		NewComponent->RegisterComponent();
 		NewComponent->SetRelativeTransform(Node.Transform);
 		AddInstanceComponent(NewComponent);
@@ -156,15 +127,7 @@ void AglTFRuntimeAssetActor::ProcessNode(USceneComponent* NodeParentComponent, c
 			{
 				StaticMeshComponent = NewObject<UStaticMeshComponent>(this, GetSafeNodeName<UStaticMeshComponent>(Node));
 			}
-
-			if (!NodeParentComponent)
-			{
-				SetRootComponent(StaticMeshComponent);
-			}
-			else
-			{
-				StaticMeshComponent->SetupAttachment(NodeParentComponent);
-			}
+			StaticMeshComponent->SetupAttachment(NodeParentComponent);
 			StaticMeshComponent->RegisterComponent();
 			StaticMeshComponent->SetRelativeTransform(Node.Transform);
 			AddInstanceComponent(StaticMeshComponent);
@@ -172,42 +135,7 @@ void AglTFRuntimeAssetActor::ProcessNode(USceneComponent* NodeParentComponent, c
 			{
 				StaticMeshConfig.Outer = StaticMeshComponent;
 			}
-
-			TArray<int32> MeshIndices;
-			MeshIndices.Add(Node.MeshIndex);
-
-			TArray<int32> LODNodeIndices;
-			if (Asset->GetNodeExtensionIndices(Node.Index, "MSFT_lod", "ids", LODNodeIndices))
-			{
-				for (const int32 LODNodeIndex : LODNodeIndices)
-				{
-					FglTFRuntimeNode LODNode;
-					// stop the chain at the first invalid node/mesh
-					if (!Asset->GetNode(LODNodeIndex, LODNode))
-					{
-						break;
-					}
-					if (LODNode.MeshIndex <= INDEX_NONE)
-					{
-						break;
-					}
-					MeshIndices.Add(LODNode.MeshIndex);
-				}
-			}
-
-			if (MeshIndices.Num() > 1)
-			{
-				TArray<float> ScreenCoverages;
-				if (Asset->GetNodeExtrasNumbers(Node.Index, "MSFT_screencoverage", ScreenCoverages))
-				{
-					for (int32 SCIndex = 0; SCIndex < ScreenCoverages.Num(); SCIndex++)
-					{
-						StaticMeshConfig.LODScreenSize.Add(SCIndex, ScreenCoverages[SCIndex]);
-					}
-				}
-			}
-
-			UStaticMesh* StaticMesh = Asset->LoadStaticMeshLODs(MeshIndices, StaticMeshConfig);
+			UStaticMesh* StaticMesh = Asset->LoadStaticMesh(Node.MeshIndex, StaticMeshConfig);
 			if (StaticMesh && !StaticMeshConfig.ExportOriginalPivotToSocket.IsEmpty())
 			{
 				UStaticMeshSocket* DeltaSocket = StaticMesh->FindSocket(FName(StaticMeshConfig.ExportOriginalPivotToSocket));
@@ -227,14 +155,7 @@ void AglTFRuntimeAssetActor::ProcessNode(USceneComponent* NodeParentComponent, c
 		else
 		{
 			USkeletalMeshComponent* SkeletalMeshComponent = NewObject<USkeletalMeshComponent>(this, GetSafeNodeName<USkeletalMeshComponent>(Node));
-			if (!NodeParentComponent)
-			{
-				SetRootComponent(SkeletalMeshComponent);
-			}
-			else
-			{
-				SkeletalMeshComponent->SetupAttachment(bForceSkinnedMeshToRoot ? GetRootComponent() : NodeParentComponent);
-			}
+			SkeletalMeshComponent->SetupAttachment(NodeParentComponent);
 			SkeletalMeshComponent->RegisterComponent();
 			SkeletalMeshComponent->SetRelativeTransform(Node.Transform);
 			AddInstanceComponent(SkeletalMeshComponent);
@@ -332,7 +253,7 @@ void AglTFRuntimeAssetActor::ProcessNode(USceneComponent* NodeParentComponent, c
 			if (!SkeletalAnimation && bAllowPoseAnimations)
 			{
 				SkeletalAnimation = Asset->CreateAnimationFromPose(SkeletalMeshComponent->GetSkeletalMeshAsset(), SkeletalAnimationConfig, Node.SkinIndex);
-	}
+			}
 #else
 			UAnimSequence* SkeletalAnimation = Asset->LoadNodeSkeletalAnimation(SkeletalMeshComponent->SkeletalMesh, Node.Index, SkeletalAnimationConfig);
 			if (!SkeletalAnimation && bAllowPoseAnimations)
@@ -347,10 +268,8 @@ void AglTFRuntimeAssetActor::ProcessNode(USceneComponent* NodeParentComponent, c
 				SkeletalMeshComponent->AnimationData.bSavedPlaying = true;
 				SkeletalMeshComponent->SetAnimationMode(EAnimationMode::AnimationSingleNode);
 			}
-}
+		}
 	}
-
-	OnNodeProcessed.Broadcast(Node, NewComponent);
 
 	for (int32 ChildIndex : Node.ChildrenIndices)
 	{

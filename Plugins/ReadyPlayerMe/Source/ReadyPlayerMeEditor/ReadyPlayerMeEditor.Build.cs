@@ -7,7 +7,6 @@ public class ReadyPlayerMeEditor : ModuleRules
 	public ReadyPlayerMeEditor(ReadOnlyTargetRules Target) : base(Target) 
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseUnity = false;
 
 		PublicIncludePaths.AddRange(
 			new string[] {
@@ -36,10 +35,13 @@ public class ReadyPlayerMeEditor : ModuleRules
 				"JsonUtilities",
 				"HTTP",
 				"Blutility",
-				"Projects",
-				"DeveloperSettings"
+				"Projects"
 			}
 		);
+
+#if UE_4_26_OR_LATER
+		PrivateDependencyModuleNames.Add("DeveloperSettings");
+#endif
 
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]

@@ -34,7 +34,7 @@ struct FAvatarMetadata
 	int32 OutfitVersion;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ReadyPlayerMe")
-	FString UpdatedAtDate;
+	FString LastModifiedDate;
 
 	FAvatarMetadata()
 	{

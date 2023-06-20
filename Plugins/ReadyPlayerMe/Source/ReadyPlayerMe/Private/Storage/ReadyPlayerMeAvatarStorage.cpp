@@ -6,7 +6,6 @@
 #include "HAL/FileManagerGeneric.h"
 #include "Misc/Paths.h"
 #include "Misc/FileHelper.h"
-#include "Runtime/Launch/Resources/Version.h"
 
 #if ENGINE_MAJOR_VERSION > 4
 #include "HAL/PlatformFileManager.h"

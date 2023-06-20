@@ -29,12 +29,12 @@ bool FReadyPlayerMeAvatarCacheHandler::ShouldLoadFromCache() const
 	return IsCachingEnabled() && FReadyPlayerMeAvatarStorage::AvatarExists(AvatarUri);
 }
 
-bool FReadyPlayerMeAvatarCacheHandler::IsMedataUpdated(const FString& UpdatedDate) const
+bool FReadyPlayerMeAvatarCacheHandler::IsMetadataChanged(const FString& LastModifiedDate) const
 {
 	const auto Metadata = GetLocalMetadata();
 	if (Metadata.IsSet())
 	{
-		return Metadata->UpdatedAtDate != UpdatedDate;
+		return Metadata->LastModifiedDate != LastModifiedDate;
 	}
 	return true;
 }
@@ -54,14 +54,14 @@ bool FReadyPlayerMeAvatarCacheHandler::ShouldSaveMetadata() const
 	return bMetadataNeedsUpdate;
 }
 
-void FReadyPlayerMeAvatarCacheHandler::SetUpdatedMetadataStr(const FString& MetadataJson, const FString& UpdatedDate)
+void FReadyPlayerMeAvatarCacheHandler::SetUpdatedMetadataStr(const FString& MetadataJson, const FString& LastModifiedDate)
 {
 	if (!IsCachingEnabled())
 	{
 		return;
 	}
-	bMetadataNeedsUpdate = IsMedataUpdated(UpdatedDate);
-	UpdatedMetadataStr = MetadataJson;
+	bMetadataNeedsUpdate = IsMetadataChanged(LastModifiedDate);
+	UpdatedMetadataStr = FReadyPlayerMeMetadataExtractor::AddModifiedDateToMetadataJson(MetadataJson, LastModifiedDate);
 	if (FReadyPlayerMeAvatarStorage::FileExists(AvatarUri.LocalMetadataPath) && bMetadataNeedsUpdate)
 	{
 		FReadyPlayerMeAvatarStorage::DeleteDirectory(AvatarUri.LocalAvatarDirectory);
