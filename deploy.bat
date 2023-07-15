@@ -1,0 +1,1 @@
+dozer CI\shared\sample-pipelines\microsoft-store\deploy.yaml --gui

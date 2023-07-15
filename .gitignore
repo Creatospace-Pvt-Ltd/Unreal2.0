@@ -3,6 +3,8 @@ Binaries/*
 Plugins/*/Binaries/*
 Content/MetaHumans
 
+node_modules
+
 # Builds
 Build/*
 
