@@ -4,21 +4,21 @@
 #include "SessionGameInstance.h"
 #include <Kismet/GameplayStatics.h>
 #include <OnlineSessionClient.h>
-#include <EOSSDK/SDK/Include/eos_sessions_types.h>
+//#include <EOSSDK/SDK/Include/eos_sessions_types.h>
 #include <GameFramework/GameModeBase.h>
 #include "OnlineSubsystemUtils.h"
 #include "Interfaces/OnlineIdentityInterface.h"
 #include "OnlineSubsystem.h"
-#include <OnlineSubsystemEOS.h>
-#include <EOSSDK/SDK/Include/eos_integratedplatform.h>
-#include <EOSSDK/SDK/Include/eos_integratedplatform_types.h>
-#include <EOSSDK/SDK/Include/eos_common.h>
-#include <IEOSSDKManager.h>
-#include <UserManagerEOS.h>
-#include <OnlineSubsystemEOS.h>
-#include <eos_rtc.h>
-#include <Windows/eos_Windows.h>
-#include <eos_rtc_admin.h>
+//#include <OnlineSubsystemEOS.h>
+//#include <EOSSDK/SDK/Include/eos_integratedplatform.h>
+//#include <EOSSDK/SDK/Include/eos_integratedplatform_types.h>
+//#include <EOSSDK/SDK/Include/eos_common.h>
+//#include <IEOSSDKManager.h>
+//#include <UserManagerEOS.h>
+//#include <OnlineSubsystemEOS.h>
+//#include <eos_rtc.h>
+//#include <Windows/eos_Windows.h>
+//#include <eos_rtc_admin.h>
 
 
 // In our UNWGameIntance.cpp:
@@ -46,12 +46,13 @@ USessionGameInstance::USessionGameInstance(const FObjectInitializer& ObjectIniti
 
 }
 
+/*
 typedef TEOSCallback<EOS_Connect_OnLoginCallback, EOS_Connect_LoginCallbackInfo> FConnectLoginCallback;
 typedef TEOSCallback<EOS_RTC_OnJoinRoomCallback, EOS_RTC_JoinRoomCallbackInfo> FJoinRoomCallback;
 typedef TEOSCallback<EOS_RTCAdmin_OnQueryJoinRoomTokenCompleteCallback, EOS_RTCAdmin_QueryJoinRoomTokenCompleteCallbackInfo> FCreateRoomTokenCallback;
 typedef TEOSCallback<EOS_Connect_OnCreateUserCallback, EOS_Connect_CreateUserCallbackInfo> FCreateUserCallback;
 typedef TEOSCallback<EOS_Connect_OnCreateDeviceIdCallback, EOS_Connect_CreateDeviceIdCallbackInfo> FCreateDeviceIDCallback;
-
+*/
 
 bool USessionGameInstance::HostSession(TSharedPtr<const FUniqueNetId> UserId, FName SessionName, bool bIsLAN, bool bIsPresence, int32 MaxNumPlayers, FString Mapname)
 {
@@ -599,6 +600,7 @@ void USessionGameInstance::DestroySessionAndLeaveGame()
 
 // Initialize EOS SDK
 
+/*
 void USessionGameInstance::InitializeEosSdk()
 {
 	EOS_InitializeOptions initOptions = {};
@@ -636,16 +638,16 @@ void USessionGameInstance::InitializeEosSdk()
 	PlatformOptions.IntegratedPlatformOptionsContainerHandle = NULL ;
 	PlatformOptions.TickBudgetInMilliseconds = 0;
 
-	/*EOS_Platform_RTCOptions rtc = {};
+	EOS_Platform_RTCOptions rtc = {};
 	rtc.PlatformSpecificOptions = NULL;
-	rtc.ApiVersion = EOS_PLATFORM_RTCOPTIONS_API_LATEST;*/
+	rtc.ApiVersion = EOS_PLATFORM_RTCOPTIONS_API_LATEST;
 
 	PlatformOptions.RTCOptions = NULL;
 
 	PlatformHandle = EOS_Platform_Create(&PlatformOptions);
-
 }
 
+	*/
 
 
 
@@ -655,6 +657,9 @@ void USessionGameInstance::InitializeEosSdk()
 
 
 
+
+
+/*
 
 FString USessionGameInstance::PUIDtoSTring(EOS_ProductUserId puid) {
 
@@ -744,10 +749,13 @@ void USessionGameInstance::GetRoomToken(EOS_ProductUserId id, uint32_t query, co
 	}
 
 }
-
+*/
 
 void USessionGameInstance::JoinVoiceRoom(FString url, FString token)
 {
+
+}
+/*
 	UE_LOG(LogTemp, Warning, TEXT("Join Voice Join Room Called!"));
 	EOS_HRTC Handle = {};
 	FJoinRoomCallback* CallbackObj = new FJoinRoomCallback();
@@ -760,7 +768,7 @@ void USessionGameInstance::JoinVoiceRoom(FString url, FString token)
 	joinRoomOptions.Flags = EOS_RTC_JOINROOMFLAGS_ENABLE_ECHO;
 	joinRoomOptions.LocalUserId = PUID;
 	joinRoomOptions.ParticipantId = PUID;
-	/*const char* tok = token.Token ;*/
+	const char* tok = token.Token ;
 	joinRoomOptions.ParticipantToken = TCHAR_TO_ANSI(*token);;
 	joinRoomOptions.RoomName = "Room";
 
@@ -775,9 +783,9 @@ void USessionGameInstance::JoinVoiceRoom(FString url, FString token)
 	};
 	EOS_RTC_JoinRoom(EOS_Platform_GetRTCInterface(PlatformHandle), &joinRoomOptions, (void*)CallbackObj, CallbackObj->GetCallbackPtr());
 }
+*/
 
-
-
+/*
 
 void USessionGameInstance::EOSLoginWithDeviceID() {
 	UE_LOG(LogTemp, Warning, TEXT("login EOS User called!"));
@@ -855,8 +863,8 @@ void USessionGameInstance::EOSLoginWithDeviceID() {
 					UE_LOG(LogTemp, Warning, TEXT("Logged In with Device ID!"));
 					//APlayerController* controller = GetFirstLocalPlayerController(GetWorld());
 
-					/*AddLocalUser(LocalUserNum, nullptr, Data->LocalUserId);
-					FUniqueNetIdEOSPtr NetIdEOS = GetLocalUniqueNetIdEOS(LocalUserNum);*/
+					AddLocalUser(LocalUserNum, nullptr, Data->LocalUserId);
+					FUniqueNetIdEOSPtr NetIdEOS = GetLocalUniqueNetIdEOS(LocalUserNum);
 					PUID = Data->LocalUserId;
 					PUIDString = PUIDtoSTring(PUID);
 					//UE_LOG(LogTemp, Warning, TEXT("PUID String: %s"), PUIDString);
@@ -884,12 +892,14 @@ void USessionGameInstance::EOSLoginWithDeviceID() {
 		UE_LOG(LogTemp, Warning, TEXT("Platform Handle Invalid!"));
 	}
 }
+*/
 	void USessionGameInstance::DeleteDeviceID() {
 
 	}
 
 	void USessionGameInstance::CreateDeviceID() {
 		UE_LOG(LogTemp, Warning, TEXT("Create Device ID Called!"));
+	}
 		/*EOS_HPlatform platform = PlatformHandle;
 		EOS_HConnect connect = EOS_Platform_GetConnectInterface(platform);
 		const TCHAR* id = *UserID;
@@ -898,6 +908,7 @@ void USessionGameInstance::EOSLoginWithDeviceID() {
 		//const char* name = NameString.c_str();
 		//const char* devModel = name;
 
+		/*
 		EOS_Connect_CreateDeviceIdOptions deviceOptions = {};
 		deviceOptions.ApiVersion = 1;
 		deviceOptions.DeviceModel = "PC Windows";
@@ -919,7 +930,7 @@ void USessionGameInstance::EOSLoginWithDeviceID() {
 		EOS_Connect_CreateDeviceId(EOS_Platform_GetConnectInterface(PlatformHandle), &deviceOptions, (void*)CallbackObj, CallbackObj->GetCallbackPtr());
 	}
 
-
+	*/
 
 
 

@@ -5,11 +5,11 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include <OnlineSubsystemUtils/Private/Tests/TestSessionInterface.h>
-#include <EOSSDK/SDK/Include/eos_sessions_types.h>
-#include "eos_sdk.h"
-#include <EOSSDK/SDK/Include/eos_types.h>
-#include <EOSSDK/SDK/Include/eos_common.h>
-#include "UserManagerEOS.h"
+//#include <EOSSDK/SDK/Include/eos_sessions_types.h>
+//#include "eos_sdk.h"
+//#include <EOSSDK/SDK/Include/eos_types.h>
+//#include <EOSSDK/SDK/Include/eos_common.h>
+//#include "UserManagerEOS.h"
 #include "SessionGameInstance.generated.h"
 
 /**
@@ -128,13 +128,13 @@ class CREATOSPACE_API USessionGameInstance : public UGameInstance
 
 
 	
-	FString PUIDtoSTring(EOS_ProductUserId puid);
-	EOS_ProductUserId StringtoPUID(FString id);
+	//FString PUIDtoSTring(EOS_ProductUserId puid);
+	//EOS_ProductUserId StringtoPUID(FString id);
 
 	
 	
-	void GetRoomToken(EOS_ProductUserId id, uint32_t query, const char* url);
-	EOS_ProductUserId PUID;
+	//void GetRoomToken(EOS_ProductUserId id, uint32_t query, const char* url);
+	//EOS_ProductUserId PUID;
 
 	// BlueprintCallable
 	public:
@@ -152,11 +152,11 @@ class CREATOSPACE_API USessionGameInstance : public UGameInstance
 		void DestroySessionAndLeaveGame();
 
 	
-	UFUNCTION(BlueprintCallable, Category = "EOS Auth")
-		void InitializeEosSdk();
+	//UFUNCTION(BlueprintCallable, Category = "EOS Auth")
+		//void InitializeEosSdk();
 
-	UFUNCTION(BlueprintCallable, Category = "Network|Test")
-	void EOSLoginWithDeviceID();
+	//UFUNCTION(BlueprintCallable, Category = "Network|Test")
+	//void EOSLoginWithDeviceID();
 
 	UFUNCTION(BlueprintCallable, Category = "Network|Test")
 	void DeleteDeviceID();
@@ -164,8 +164,8 @@ class CREATOSPACE_API USessionGameInstance : public UGameInstance
 	UFUNCTION(BlueprintCallable, Category = "Network|Test")
 	void CreateDeviceID();
 
-	UFUNCTION(BlueprintCallable, Category = "Network|Test")
-	void CreateEOSVoiceRoomToken(FString id);
+//	UFUNCTION(BlueprintCallable, Category = "Network|Test")
+//	void CreateEOSVoiceRoomToken(FString id);
 
 	UFUNCTION(BlueprintCallable, Category = "Network|Test")
 	void JoinVoiceRoom(FString url, FString token);
@@ -193,7 +193,7 @@ class CREATOSPACE_API USessionGameInstance : public UGameInstance
 		typedef TEOSCallback<EOS_Connect_OnCreateDeviceIdCallback, EOS_Connect_CreateDeviceIdCallbackInfo> FCreateDeviceIDCallback;*/
 
 		
-		EOS_HPlatform PlatformHandle;
+		//EOS_HPlatform PlatformHandle;
 
 		UPROPERTY(BlueprintAssignable)
 			FRoomNotFound RoomNotFound;

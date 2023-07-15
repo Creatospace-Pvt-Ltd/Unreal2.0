@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Audio Service &mdash; C++ SDK 2.4.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Video Service" href="video.html" />
+    <link rel="prev" title="Conference Service" href="conference.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> C++ SDK
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../other/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../other/run_time_deps.html">Run Time Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../other/supported_platforms.html">Supported Platforms</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../coresdk.html">Core API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="sdk.html">Sdk Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="session.html">Session Service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conference.html">Conference Service</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Audio Service</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#audio-interface">Audio Interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#local-audio">Local Audio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#remote-audio">Remote Audio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#audio-processing">Audio Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="video.html">Video Service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="device_management.html">Device Management Service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="common/async_ops.html">Asynchronous Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="common/log_level.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="common/exception.html">SDK Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="common/event_handling.html">Event Handling Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="common/custom_allocator.html">Overriding new/delete operators</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../media_io.html">Media IO API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins.html">Plugins</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">C++ SDK</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../coresdk.html">Core API</a> &raquo;</li>
+      <li>Audio Service</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/api/sdk/audio.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="audio-service">
+<span id="api-audio-service"></span><h1>Audio Service<a class="headerlink" href="#audio-service" title="Permalink to this heading"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The Audio Service is considered to be in Beta phase on Linux systems.</p>
+</div>
+<p>The Audio Service allows enabling and disabling audio for the local and remote participants, as well as configuring audio capture modes.</p>
+<section id="audio-interface">
+<h2>Audio Interface<a class="headerlink" href="#audio-interface" title="Permalink to this heading"></a></h2>
+<p>#include &lt;dolbyio/comms/audio.h&gt;</p>
+<p>Provides access to the local and remote audio services.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: Cannot find file: C:\GitLab-Runner\builds\RRYYHPBd\0\voxeet\cpp\sdk\build_directory\docs\artifacts\xml\index.xml</p>
+</div>
+</section>
+<section id="local-audio">
+<h2>Local Audio<a class="headerlink" href="#local-audio" title="Permalink to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: Cannot find file: C:\GitLab-Runner\builds\RRYYHPBd\0\voxeet\cpp\sdk\build_directory\docs\artifacts\xml\index.xml</p>
+</div>
+</section>
+<section id="remote-audio">
+<h2>Remote Audio<a class="headerlink" href="#remote-audio" title="Permalink to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: Cannot find file: C:\GitLab-Runner\builds\RRYYHPBd\0\voxeet\cpp\sdk\build_directory\docs\artifacts\xml\index.xml</p>
+</div>
+</section>
+<section id="audio-processing">
+<h2>Audio Processing<a class="headerlink" href="#audio-processing" title="Permalink to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenenum: Cannot find file: C:\GitLab-Runner\builds\RRYYHPBd\0\voxeet\cpp\sdk\build_directory\docs\artifacts\xml\index.xml</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenstruct: Cannot find file: C:\GitLab-Runner\builds\RRYYHPBd\0\voxeet\cpp\sdk\build_directory\docs\artifacts\xml\index.xml</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenstruct: Cannot find file: C:\GitLab-Runner\builds\RRYYHPBd\0\voxeet\cpp\sdk\build_directory\docs\artifacts\xml\index.xml</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygentypedef: Cannot find file: C:\GitLab-Runner\builds\RRYYHPBd\0\voxeet\cpp\sdk\build_directory\docs\artifacts\xml\index.xml</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="conference.html" class="btn btn-neutral float-left" title="Conference Service" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="video.html" class="btn btn-neutral float-right" title="Video Service" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Dolby Laboratories.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

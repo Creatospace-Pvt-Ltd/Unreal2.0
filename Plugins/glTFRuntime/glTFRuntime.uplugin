@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "20220823",
+	"VersionName": "20221201",
 	"FriendlyName": "glTFRuntime",
 	"Description": "Manage glTF files at runtime",
 	"Category": "Runtime",
@@ -10,25 +10,30 @@
 	"DocsURL": "https://github.com/rdeioris/glTFRuntime/blob/master/README.md",
 	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/d2ed3709933d4608a3a8dd746cbc045d",
 	"SupportURL": "https://discord.gg/DzS7MHy",
-	"EngineVersion": "5.0.0",
 	"CanContainContent": true,
+	"EngineVersion": "5.0",
 	"Installed": true,
 	"Modules": [
 		{
 			"Name": "glTFRuntime",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
-			"PlatformAllowList": [
+			"WhitelistPlatforms": [
 				"Win64",
-				"Android"
+				"Mac",
+				"Linux",
+				"Android",
+				"IOS"
 			]
 		},
 		{
 			"Name": "glTFRuntimeEditor",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
-			"PlatformAllowList": [
-				"Win64"
+			"WhitelistPlatforms": [
+				"Win64",
+				"Mac",
+				"Linux"
 			]
 		}
 	],

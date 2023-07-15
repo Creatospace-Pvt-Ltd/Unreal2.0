@@ -1,0 +1,14 @@
+.. _supported_platforms:
+
+Supported Platforms
+===================
+
+The C++ SDK is compatible with the following operating systems:
+
+* Ubuntu 20.04+ 
+	* x86_64
+* MacOS 10.14+ 
+	* x86_64, arm64
+* Windows 10+
+	* x86_64
+	* Windows SDK 10.0.20348.0+

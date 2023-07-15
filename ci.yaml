@@ -1,0 +1,15 @@
+runtimeDirectory: C:\Users\Saswat\Documents\GitHub\Unreal2.0 # optional, default: current working directory
+
+steps:
+- title: Print Node Version # any display name
+  command: node -v # CLI command to run
+
+- title: Another step
+  workingDirectory: C:/Program Files/Java/jdk1.8.0_211/bin
+  skippable: true # the execution will continue on failure of this step
+  command: java.exe
+    -version # can be multi-line
+
+- title: Downloaded Script # This step automatically downloads the linked code and saves it under the temporary directory.
+  command: node ${TMP}/delayed.js 5
+  code: https://raw.githubusercontent.com/kasp1/Dozer/v4/examples/dev/delayed.js
