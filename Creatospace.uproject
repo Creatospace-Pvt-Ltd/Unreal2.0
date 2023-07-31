@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{D504AC97-4650-2547-C575-6A9BDDC25EFE}",
+	"EngineAssociation": "{ADBE92CF-4EDA-3C31-B5CE-E997889F9B29}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -77,7 +77,7 @@
 		},
 		{
 			"Name": "WhatsMyPublicIP",
-			"Enabled": true
+			"Enabled": false
 		},
 		{
 			"Name": "HTTPRequestForBlueprints",
