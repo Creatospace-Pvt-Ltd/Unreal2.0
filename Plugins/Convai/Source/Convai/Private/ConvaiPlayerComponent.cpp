@@ -173,7 +173,6 @@ TArray<FString> UConvaiPlayerComponent::GetAvailableCaptureDeviceNames()
 	return AvailableDeviceNames;
 }
 
-
 void UConvaiPlayerComponent::GetActiveCaptureDevice(FCaptureDeviceInfoBP& OutInfo)
 {
 	if (!AudioCaptureComponent.IsValid())
@@ -245,6 +244,83 @@ bool UConvaiPlayerComponent::SetCaptureDeviceByName(FString DeviceName)
 	return true;
 }
 
+void UConvaiPlayerComponent::SetMicrophoneVolumeMultiplier(float InVolumeMultiplier, bool& Success)
+{
+	Success = false;
+	if (!AudioCaptureComponent.IsValid())
+	{
+		UE_LOG(ConvaiPlayerLog, Warning, TEXT("SetMicrophoneVolumeMultiplier: AudioCaptureComponent is not valid"));
+		return;
+	}
+	AudioCaptureComponent->SetVolumeMultiplier(InVolumeMultiplier);
+	Success = true;
+}
+
+void UConvaiPlayerComponent::GetMicrophoneVolumeMultiplier(float& OutVolumeMultiplier, bool& Success)
+{
+	Success = false;
+	if (!AudioCaptureComponent.IsValid())
+	{
+		UE_LOG(ConvaiPlayerLog, Warning, TEXT("SetMicrophoneVolumeMultiplier: AudioCaptureComponent is not valid"));
+		return;
+	}
+	auto InternalAudioComponent = AudioCaptureComponent->GetAudioComponent();
+	if (!InternalAudioComponent)
+	{
+		UE_LOG(ConvaiPlayerLog, Warning, TEXT("GetMicrophoneVolumeMultiplier: InternalAudioComponent is not valid"));
+	}
+	OutVolumeMultiplier = InternalAudioComponent->VolumeMultiplier;
+	Success = true;
+}
+
+// void UConvaiPlayerComponent::GetIfHardwareFeatureIsSupported(EHardwareInputFeatureBP FeatureType, bool& Success)
+// {
+// 	Success = false;
+// 	if (!AudioCaptureComponent.IsValid())
+// 	{
+// 		UE_LOG(ConvaiPlayerLog, Warning, TEXT("GetIfHardwareFeatureIsSupported: AudioCaptureComponent is not valid"));
+// 		return;
+// 	}
+
+// 	auto CaptureSynth = AudioCaptureComponent->GetCaptureSynth();
+// 	if (CaptureSynth == nullptr)
+// 	{
+// 		UE_LOG(ConvaiPlayerLog, Warning, TEXT("GetIfHardwareFeatureIsSupported: CaptureSynth is not valid"));
+// 		return;
+// 	}
+
+// 	auto AudioCapture = CaptureSynth->GetAudioCapture();
+// 	if (AudioCapture == nullptr)
+// 	{
+// 		UE_LOG(ConvaiPlayerLog, Warning, TEXT("GetIfHardwareFeatureIsSupported: AudioCapture is not valid"));
+// 		return;
+// 	}
+// 	Success = AudioCapture->GetIfHardwareFeatureIsSupported((Audio::EHardwareInputFeature)FeatureType);
+// }
+
+// void UConvaiPlayerComponent::SetHardwareFeatureEnabled(EHardwareInputFeatureBP FeatureType, bool bIsEnabled, bool& Success)
+// {
+// 	bool HardwareFeatureIsSupported;
+// 	GetIfHardwareFeatureIsSupported(FeatureType, HardwareFeatureIsSupported);
+// 	if (!HardwareFeatureIsSupported)
+// 	{
+// 		if (!bIsEnabled)
+// 		{
+// 			Success = true;
+// 			return;
+// 		}
+// 		else
+// 		{
+// 			Success = false;
+// 			return;
+// 		}
+// 	}
+
+// 	auto AudioCapture = AudioCaptureComponent->GetCaptureSynth()->GetAudioCapture();
+// 	AudioCapture->SetHardwareFeatureEnabled((Audio::EHardwareInputFeature)FeatureType, bIsEnabled);
+// 	Success = true;
+// }
+
 void UConvaiPlayerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -281,7 +357,7 @@ void UConvaiPlayerComponent::StartVoiceChunkCapture()
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("StartVoiceChunkCapture() in VoiceCaptureComp.cpp")));
 	//UE_LOG(LogTemp, Warning, TEXT("StartVoiceChunkCapture() in VoiceCaptureComp.cpp"));
-	UAudioMixerBlueprintLibrary::StartRecordingOutput(this, TIME_BETWEEN_VOICE_UPDATES_SECS*2, Cast<USoundSubmix>(AudioCaptureComponent->SoundSubmix));
+	UAudioMixerBlueprintLibrary::StartRecordingOutput(this, TIME_BETWEEN_VOICE_UPDATES_SECS*1, Cast<USoundSubmix>(AudioCaptureComponent->SoundSubmix));
 }
 
 void UConvaiPlayerComponent::ReadRecordedBuffer(Audio::AlignedFloatBuffer& RecordedBuffer, float& OutNumChannels, float& OutSampleRate)
@@ -397,9 +473,11 @@ USoundWave* UConvaiPlayerComponent::FinishRecording()
 
 	UE_LOG(ConvaiPlayerLog, Log, TEXT("Stopped Recording "));
 	StopVoiceChunkCapture();
+
 	USoundWave* OutSoundWave = UConvaiUtils::PCMDataToSoundWav(VoiceCaptureBuffer, 1, ConvaiConstants::VoiceCaptureSampleRate);
 	AudioCaptureComponent->Stop();  //stop the AudioCaptureComponent
-	UE_LOG(ConvaiPlayerLog, Log, TEXT("OutSoundWave->GetDuration(): %d seconds "), OutSoundWave->GetDuration());
+	if (IsValid(OutSoundWave))
+		UE_LOG(ConvaiPlayerLog, Log, TEXT("OutSoundWave->GetDuration(): %d seconds "), OutSoundWave->GetDuration());
 	IsRecording = false;
 	return OutSoundWave;
 }
@@ -649,6 +727,14 @@ void UConvaiPlayerComponent::OnServerAudioReceived(uint8* VoiceData, uint32 Voic
 void UConvaiPlayerComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	if (!IsInit)
+	{
+		if (!Init())
+		{
+			UE_LOG(ConvaiPlayerLog, Warning, TEXT("Could not initialize Audio Decoder"));
+			return;
+		}
+	}
 }
 
 bool UConvaiPlayerComponent::ConsumeStreamingBuffer(uint8* Buffer, uint32 length)
