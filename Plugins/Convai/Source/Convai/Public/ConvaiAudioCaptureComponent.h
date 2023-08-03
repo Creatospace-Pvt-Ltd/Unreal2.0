@@ -58,8 +58,6 @@ namespace Audio
 		// Returns the number of samples enqueued in the capture synth
 		int32 GetNumSamplesEnqueued();
 
-		FAudioCapture* GetAudioCapture();
-
 	private:
 
 		// Number of samples enqueued
@@ -76,6 +74,7 @@ namespace Audio
 
 		// Buffer of audio capture data, yet to be copied to the output 
 		TArray<float> AudioCaptureData;
+
 
 		// If the object has been initialized
 		bool bInitialized;
@@ -126,8 +125,6 @@ public:
 	int32 GetActiveCaptureDevice(Audio::FCaptureDeviceInfo& OutInfo);
 
 	bool SetCaptureDevice(int32 DeviceIndex);
-
-	Audio::FConvaiAudioCaptureSynth* GetCaptureSynth();
 
 private:
 	int32 SelectedDeviceIndex;

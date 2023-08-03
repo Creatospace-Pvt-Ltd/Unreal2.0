@@ -196,11 +196,6 @@ namespace Audio
 		return AudioCaptureData.Num();
 	}
 
-	FAudioCapture* FConvaiAudioCaptureSynth::GetAudioCapture()
-	{
-		return &AudioCapture;
-	}
-
 	bool FConvaiAudioCaptureSynth::GetAudioData(TArray<float>& OutAudioData)
 	{
 		FScopeLock Lock(&CaptureCriticalSection);
@@ -350,11 +345,6 @@ bool UConvaiAudioCaptureComponent::SetCaptureDevice(int32 DeviceIndex)
 	{
 		return false;
 	}
-}
-
-Audio::FConvaiAudioCaptureSynth* UConvaiAudioCaptureComponent::GetCaptureSynth()
-{
-	return &CaptureSynth;
 }
 
 void UConvaiAudioCaptureComponent::OnBeginGenerate()

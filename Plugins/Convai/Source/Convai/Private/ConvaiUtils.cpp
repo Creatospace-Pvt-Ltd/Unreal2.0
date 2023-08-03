@@ -289,9 +289,6 @@ void UConvaiUtils::PCMDataToWav(TArray<uint8> InPCMBytes, TArray<uint8>& OutWave
 
 USoundWave* UConvaiUtils::PCMDataToSoundWav(TArray<uint8> InPCMBytes, int NumChannels, int SampleRate)
 {
-	if (InPCMBytes.Num() <= 44)
-		return nullptr;
-
 	TArray<uint8> OutSerializeWave;
 	// insert the .wav format headers at the beggining of the PCM data
 	SerializeWaveFile(OutSerializeWave, InPCMBytes.GetData(), InPCMBytes.Num(), NumChannels, SampleRate);
@@ -368,15 +365,4 @@ void UConvaiUtils::ResampleAudio(float currentSampleRate, float targetSampleRate
 		// Update the current frame index
 		currentFrameIndex = nextFrameIndex;
 	}
-}
-
-FString UConvaiUtils::FUTF8ToFString(const char* StringToConvert)
-{
-	// Create a TCHAR (wide string) from the UTF-8 string using Unreal's FUTF8ToTCHAR class
-	FUTF8ToTCHAR Converter(StringToConvert);
-
-	// Create an FString from the converted wide string
-	FString text_string(Converter.Get());
-
-	return text_string;
 }

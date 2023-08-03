@@ -19,13 +19,7 @@ DECLARE_DELEGATE(FonDataReceived_Delegate);
 // class IVoiceCapture;
 class UConvaiAudioCaptureComponent;
 
-// UENUM(BlueprintType)
-// enum class EHardwareInputFeatureBP : uint8
-// {
-// 	EchoCancellation,
-// 	NoiseSuppression,
-// 	AutomaticGainControl
-// };
+
 
 // TODO (Mohamed): Ensure both Chatbot and Player components have the same ReplicateVoiceToNetwork value
 // TODO (Mohamed): Send Text should also be handled in this class (UConvaiPlayerComponent) like we did with voice
@@ -36,22 +30,22 @@ struct FCaptureDeviceInfoBP
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Convai|Microphone")
-	FString DeviceName = "";
+	FString DeviceName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Convai|Microphone")
-	int DeviceIndex = 0;
+	int DeviceIndex;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Convai|Microphone")
-	FString LongDeviceId = "";
+	FString LongDeviceId;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Convai|Microphone")
-	int InputChannels = 0;
+	int InputChannels;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Convai|Microphone")
-	int PreferredSampleRate = 0;
+	int PreferredSampleRate;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Convai|Microphone")
-	bool bSupportsHardwareAEC = 0;
+	bool bSupportsHardwareAEC;
 };
 
 
@@ -87,17 +81,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Convai|Microphone")
 	bool SetCaptureDeviceByName(FString DeviceName);
 
-	UFUNCTION(BlueprintCallable, Category = "Convai|Microphone")
-	void SetMicrophoneVolumeMultiplier(float InVolumeMultiplier, bool& Success);
-
-	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Convai|Microphone")
-	void GetMicrophoneVolumeMultiplier(float& OutVolumeMultiplier, bool& Success);
-
-	// UFUNCTION(BlueprintCallable, Category = "Convai|Microphone")
-	// void GetIfHardwareFeatureIsSupported(EHardwareInputFeatureBP FeatureType, bool& Success);
-
-	// UFUNCTION(BlueprintCallable, Category = "Convai|Microphone")
-	// void SetHardwareFeatureEnabled(EHardwareInputFeatureBP FeatureType, bool bIsEnabled, bool& Success);
 
 	/**
 	 *    Start recording audio from the microphone, use "Finish Recording" function afterwards

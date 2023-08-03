@@ -22,7 +22,6 @@ THIRD_PARTY_INCLUDES_START
 #undef FastFence
 #undef MemoryBarrier
 #undef Yield
-#undef CaptureStackBackTrace
 THIRD_PARTY_INCLUDES_END
 
 #include "ConvaiSubsystem.generated.h"
