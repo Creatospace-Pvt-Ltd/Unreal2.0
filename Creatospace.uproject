@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{ADBE92CF-4EDA-3C31-B5CE-E997889F9B29}",
+	"EngineAssociation": "{D504AC97-4650-2547-C575-6A9BDDC25EFE}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -144,6 +144,10 @@
 		},
 		{
 			"Name": "AlembicHairImporter",
+			"Enabled": true
+		},
+		{
+			"Name": "ClipboardNodes",
 			"Enabled": true
 		}
 	]
