@@ -149,6 +149,10 @@
 		{
 			"Name": "ClipboardNodes",
 			"Enabled": true
+		},
+		{
+			"Name": "AnalyticsBlueprintLibrary",
+			"Enabled": true
 		}
 	]
 }
