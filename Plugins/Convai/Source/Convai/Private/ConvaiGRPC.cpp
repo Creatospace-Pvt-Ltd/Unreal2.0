@@ -11,6 +11,7 @@
 #include "Engine/GameInstance.h"
 // #include <chrono>   
 #include <string>
+#include "Engine/EngineTypes.h"
 
 THIRD_PARTY_INCLUDES_START
 #include <grpc++/grpc++.h>
@@ -22,6 +23,7 @@ THIRD_PARTY_INCLUDES_END
 DEFINE_LOG_CATEGORY(ConvaiGRPCLog);
 
 using ::service::GetResponseRequest_GetResponseConfig;
+using ::service::TriggerConfig;
 using ::service::ActionConfig;
 using ::service::AudioConfig;
 using ::service::ActionConfig_Object;
@@ -37,38 +39,6 @@ using service::ConvaiService;
 
 
 namespace {
-	UConvaiSubsystem* GetConvaiSubsystem(const UObject* WorldContextObject)
-	{
-		//UWorld* World = WorldPtr.Get();
-
-		if (!WorldContextObject)
-		{
-			UE_LOG(ConvaiGRPCLog, Warning, TEXT("WorldContextObject ptr is invalid!"));
-			return nullptr;
-		}
-
-		UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(WorldContextObject);
-		if (!GameInstance)
-		{
-			UE_LOG(ConvaiSubsystemLog, Warning, TEXT("Could not get pointer to a GameInstance"));
-			return nullptr;
-		}
-
-
-		if (UConvaiSubsystem* ConvaiSubsystem = GameInstance->GetSubsystem<UConvaiSubsystem>())
-		{
-			return ConvaiSubsystem;
-		}
-		else
-		{
-			UE_LOG(ConvaiSubsystemLog, Warning, TEXT("Could not get pointer to Convai Subsystem"));
-			return nullptr;
-		}
-
-	}
-
-
-
 	const char* StatusCodeStr[] =
 	{
 	"OK",
@@ -89,23 +59,28 @@ namespace {
 	"UNAVAILABLE",
 	"DATA_LOSS",
 	"DO_NOT_USE" };
-
 }
 
-
-UConvaiGRPCGetResponseProxy* UConvaiGRPCGetResponseProxy::CreateConvaiGRPCGetResponseProxy(UObject* WorldContextObject, FString UserQuery, FString CharID, bool VoiceResponse, FString SessionID, UConvaiEnvironment* Environment, bool GenerateActions)
+UConvaiGRPCGetResponseProxy* UConvaiGRPCGetResponseProxy::CreateConvaiGRPCGetResponseProxy(UObject* WorldContextObject, FString UserQuery, FString Trigger, FString CharID, bool VoiceResponse, bool RequireFaceData, FString SessionID, UConvaiEnvironment* Environment, bool GenerateActions, FString API_Key)
 {
 	UConvaiGRPCGetResponseProxy* Proxy = NewObject<UConvaiGRPCGetResponseProxy>();
 	Proxy->WorldPtr = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
 	Proxy->UserQuery = UserQuery;
+	Proxy->Trigger = Trigger;
 	Proxy->CharID = CharID;
 	Proxy->SessionID = SessionID;
 	Proxy->VoiceResponse = VoiceResponse;
 	Proxy->Environment = Environment;
 	Proxy->GenerateActions = GenerateActions;
-	Proxy->API_key = Convai::Get().GetConvaiSettings()->API_Key;
+	Proxy->RequireFaceData = RequireFaceData;
+	Proxy->API_Key = API_Key;
 
 	return Proxy;
+}
+
+UConvaiGRPCGetResponseProxy* UConvaiGRPCGetResponseProxy::CreateConvaiGRPCGetResponseProxy(UObject* WorldContextObject, FString UserQuery, FString CharID, bool VoiceResponse, bool RequireFaceData, FString SessionID, UConvaiEnvironment* Environment, bool GenerateActions, FString API_Key)
+{
+	return CreateConvaiGRPCGetResponseProxy(WorldContextObject, UserQuery, FString(""), CharID, VoiceResponse, RequireFaceData, SessionID, Environment, GenerateActions, API_Key);
 }
 
 void UConvaiGRPCGetResponseProxy::Activate()
@@ -119,7 +94,7 @@ void UConvaiGRPCGetResponseProxy::Activate()
 	reply = std::unique_ptr<service::GetResponseResponse>(new service::GetResponseResponse());
 
 	// Form Validation
-	if (!UConvaiFormValidation::ValidateAPIKey(API_key) || !(UConvaiFormValidation::ValidateCharacterID(CharID)) || !(UConvaiFormValidation::ValidateSessionID(SessionID)))
+	if (!UConvaiFormValidation::ValidateAPIKey(API_Key) || !(UConvaiFormValidation::ValidateCharacterID(CharID)) || !(UConvaiFormValidation::ValidateSessionID(SessionID)))
 	{
 		OnFailure.ExecuteIfBound();
 		return;
@@ -132,7 +107,7 @@ void UConvaiGRPCGetResponseProxy::Activate()
 		return;
 	}
 
-	UConvaiSubsystem* ConvaiSubsystem = GetConvaiSubsystem(WorldPtr.Get());
+	UConvaiSubsystem* ConvaiSubsystem = UConvaiUtils::GetConvaiSubsystem(WorldPtr.Get());
 	if (!ConvaiSubsystem)
 	{
 		UE_LOG(ConvaiGRPCLog, Warning, TEXT("Convai Subsystem is not valid"));
@@ -158,10 +133,37 @@ void UConvaiGRPCGetResponseProxy::Activate()
 		return;
 	}
 
-	//ClientContext context;
-	//std::chrono::system_clock::time_point deadline =
-	//	std::chrono::system_clock::now() + std::chrono::milliseconds(3000);
-	//client_context.set_deadline(deadline);
+	bool Found;
+	FString VersionName;
+	FString EngineVersion;
+	FString PlatformName;
+	FString PluginEngineVersion;
+	FString FriendlyName;
+
+	UConvaiUtils::GetPluginInfo(FString("Convai"), Found, VersionName, FriendlyName, PluginEngineVersion);
+	UConvaiUtils::GetPlatformInfo(EngineVersion, PlatformName);
+
+	// Add metadata
+	client_context.AddMetadata("engine", "Unreal Engine");
+	client_context.AddMetadata("engine_version", TCHAR_TO_UTF8(*EngineVersion));
+	client_context.AddMetadata("engine", "Unreal Engine");
+
+	client_context.AddMetadata("engine", "Unreal Engine");
+	client_context.AddMetadata("engine_version", TCHAR_TO_UTF8(*EngineVersion));
+	client_context.AddMetadata("platform_name", TCHAR_TO_UTF8(*PlatformName));
+
+	if (Found)
+	{
+		client_context.AddMetadata("plugin_engine_version", TCHAR_TO_UTF8(*PluginEngineVersion));
+		client_context.AddMetadata("plugin_version", TCHAR_TO_UTF8(*VersionName));
+		client_context.AddMetadata("plugin_base_name", TCHAR_TO_UTF8(*FriendlyName));
+	}
+	else
+	{
+		client_context.AddMetadata("plugin_engine_version", "Unknown");
+		client_context.AddMetadata("plugin_version", "Unknown");
+		client_context.AddMetadata("plugin_base_name", "Unknown");
+	}
 
 	// Initialize the stream
 	stream_handler = stub_->AsyncGetResponse(&client_context, cq_, (void*)&OnInitStreamDelegate);
@@ -295,7 +297,7 @@ void UConvaiGRPCGetResponseProxy::OnStreamInit(bool ok)
 		action_config->set_classification("multistep");
 		for (FString action : Environment->Actions) // Add Actions
 		{
-			action_config->add_actions(TCHAR_TO_ANSI(*action));
+			action_config->add_actions(TCHAR_TO_UTF8(*action));
 		}
 
 		for (FConvaiObjectEntry object : Environment->Objects) // Add Objects
@@ -308,8 +310,8 @@ void UConvaiGRPCGetResponseProxy::OnStreamInit(bool ok)
 				FinalName = FinalName.Append(*object.Description);
 				FinalName = FinalName.Append(">");
 			}
-			action_config_object->set_name(TCHAR_TO_ANSI(*FinalName));
-			action_config_object->set_description(TCHAR_TO_ANSI(*object.Description));
+			action_config_object->set_name(TCHAR_TO_UTF8(*FinalName));
+			action_config_object->set_description(TCHAR_TO_UTF8(*object.Description));
 		}
 
 		for (FConvaiObjectEntry character : Environment->Characters) // Add Characters
@@ -323,8 +325,8 @@ void UConvaiGRPCGetResponseProxy::OnStreamInit(bool ok)
 				FinalName = FinalName.Append(">");
 			}
 
-			action_config_character->set_name(TCHAR_TO_ANSI(*FinalName));
-			action_config_character->set_bio(TCHAR_TO_ANSI(*character.Description));
+			action_config_character->set_name(TCHAR_TO_UTF8(*FinalName));
+			action_config_character->set_bio(TCHAR_TO_UTF8(*character.Description));
 		}
 
 		// Get the speaker/main character name
@@ -334,17 +336,20 @@ void UConvaiGRPCGetResponseProxy::OnStreamInit(bool ok)
 
 	// Create Audio Configuration
 	AudioConfig* audio_config = new AudioConfig();
-	audio_config->set_sample_rate_hertz(ConvaiConstants::VoiceCaptureSampleRate);
+	audio_config->set_sample_rate_hertz((int32)ConvaiConstants::VoiceCaptureSampleRate);
+	audio_config->set_enable_facial_data(RequireFaceData);
+	//audio_config->set_disable_audio(false);
 
 	// Create the config object that holds Audio and Action configs
 	GetResponseRequest_GetResponseConfig* getResponseConfig = new GetResponseRequest_GetResponseConfig();
-	getResponseConfig->set_api_key(TCHAR_TO_ANSI(*API_key));
-	getResponseConfig->set_session_id(TCHAR_TO_ANSI(*SessionID));
-	getResponseConfig->set_character_id(TCHAR_TO_ANSI(*CharID));
+	getResponseConfig->set_api_key(TCHAR_TO_UTF8(*API_Key));
+	getResponseConfig->set_session_id(TCHAR_TO_UTF8(*SessionID));
+	getResponseConfig->set_character_id(TCHAR_TO_UTF8(*CharID));
+
 	if (GenerateActions)
 	{
 		getResponseConfig->set_allocated_action_config(action_config);
-		getResponseConfig->set_speaker(TCHAR_TO_ANSI(*MainCharacter));
+		getResponseConfig->set_speaker(TCHAR_TO_UTF8(*MainCharacter));
 	}
 	getResponseConfig->set_allocated_audio_config(audio_config);
 
@@ -384,8 +389,6 @@ void UConvaiGRPCGetResponseProxy::OnStreamWrite(bool ok)
 
 	//UE_LOG(ConvaiGRPCLog, Log, TEXT("OnStreamWrite"));
 
-	UConvaiSubsystem* ConvaiSubsystem = GetConvaiSubsystem(WorldPtr.Get());
-
 	// Clear the request data to make it ready to hold the new data we are going to send
 	request.Clear();
 	GetResponseRequest_GetResponseData* get_response_data = new GetResponseRequest_GetResponseData();
@@ -396,10 +399,18 @@ void UConvaiGRPCGetResponseProxy::OnStreamWrite(bool ok)
 	if (UserQuery.Len())
 	{
 		// Add in the text data
-		get_response_data->set_text_data(TCHAR_TO_ANSI(*UserQuery));
+		get_response_data->set_text_data(TCHAR_TO_UTF8(*UserQuery));
 		IsThisTheFinalWrite = true;
 	}
-	else
+	else if (Trigger.Len()) // If there is a trigger message
+	{
+		// Add in the trigger data
+		TriggerConfig* triggerConfig = new TriggerConfig();
+		triggerConfig->set_trigger_message(TCHAR_TO_UTF8(*Trigger));
+		get_response_data->set_allocated_trigger_data(triggerConfig);
+		IsThisTheFinalWrite = true;
+	}
+	else // Normal voice data
 	{
 		// Try to consume the next chunk of mic data
 		uint8* Buffer = nullptr;
@@ -435,10 +446,10 @@ void UConvaiGRPCGetResponseProxy::OnStreamWrite(bool ok)
 
 
 
-	// #if ConvaiDebugMode
-	//     FString DebugString(request.DebugString().c_str());
-	//     UE_LOG(ConvaiGRPCLog, Warning, TEXT("request: %s"), *DebugString);
-	// #endif 
+	 //#if ConvaiDebugMode
+	 //    FString DebugString(request.DebugString().c_str());
+	 //    UE_LOG(ConvaiGRPCLog, Warning, TEXT("request: %s"), *DebugString);
+	 //#endif 
 
 	if (IsThisTheFinalWrite)
 	{
@@ -489,17 +500,12 @@ void UConvaiGRPCGetResponseProxy::OnStreamRead(bool ok)
 		return;
 	}
 
-
 	if (!ok && !status.ok())
 	{
 		LogAndEcecuteFailure("OnStreamRead");
 		return;
 	}
 	//UE_LOG(ConvaiGRPCLog, Log, TEXT("OnStreamRead"));
-
-
-
-	UConvaiSubsystem* ConvaiSubsystem = GetConvaiSubsystem(WorldPtr.Get());
 
 	// Grab the session ID
 	std::string SessionID_std = reply->session_id();
@@ -536,16 +542,38 @@ void UConvaiGRPCGetResponseProxy::OnStreamRead(bool ok)
 
 		// Grab bot audio
 		::std::string audio_data = reply->audio_response().audio_data();
-		TArray<uint8> VoiceData = TArray<uint8>(reinterpret_cast<const uint8*>(audio_data.data() + 44), audio_data.length() - 44);
+		TArray<uint8> VoiceData;
+		if (reply->audio_response().audio_data().length() > 44)
+		{
+			VoiceData = TArray<uint8>(reinterpret_cast<const uint8*>(audio_data.data() + 44), audio_data.length() - 44);
+		}
+
+		TArray<FAnimationFrame> FaceDataAnimation;
+		//std::string FaceData;
+		//FaceData = reply->audio_response().face_data();
+		//FString FaceData_string = UConvaiUtils::FUTF8ToFString(FaceData.c_str());
+		//UE_LOG(ConvaiGRPCLog, Log, TEXT("GetResponse FaceData: %s"), *FaceData_string);
+
+		if (RequireFaceData)
+		{
+			TSharedPtr<FJsonObject> FaceData_json;
+
+			std::string FaceData;
+			FaceData = reply->audio_response().face_data();
+			FString FaceData_string = UConvaiUtils::FUTF8ToFString(FaceData.c_str());
+
+			FaceDataAnimation = UConvaiUtils::ParseJsonToAnimationData(FaceData_string);
+		}
+
 		bool IsFinalResponse = reply->audio_response().end_of_response();
 
 		// Broadcast the audio and text
-		OnDataReceived.ExecuteIfBound(text_string, VoiceData, reply->audio_response().audio_config().sample_rate_hertz(), IsFinalResponse);
+		OnDataReceived.ExecuteIfBound(text_string, VoiceData, FaceDataAnimation, reply->audio_response().audio_config().sample_rate_hertz(), IsFinalResponse);
 	}
 	else if (reply->has_action_response()) // Is there an action response
 	{
 		// Convert Action string to FString
-		FString SequenceString(reply->action_response().action().c_str());
+		FString SequenceString = UConvaiUtils::FUTF8ToFString(reply->action_response().action().c_str());
 
 #if ConvaiDebugMode
 		UE_LOG(ConvaiGRPCLog, Log, TEXT("GetResponse SequenceString: %s"), *SequenceString);
@@ -553,8 +581,8 @@ void UConvaiGRPCGetResponseProxy::OnStreamRead(bool ok)
 
 		// Parse the actions
 		TArray<FConvaiResultAction> SequenceOfActions;
-		TArray<FString> Sequence;
-		SequenceString.ParseIntoArray(Sequence, TEXT(","), true);
+		TArray<FString> Sequence = UConvaiActions::SmartSplit(SequenceString);
+
 		for (auto s : Sequence)
 		{
 			FConvaiResultAction ConvaiResultAction;

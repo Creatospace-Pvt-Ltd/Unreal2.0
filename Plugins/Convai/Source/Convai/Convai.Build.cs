@@ -23,26 +23,6 @@ public class Convai : ModuleRules
 		get { return Path.GetFullPath(Path.Combine(ModulePath, "../ThirdParty/")); }
 	}
 
-    // private bool IsUE426
-    // {
-    //     get
-    //     {
-    //         //var VersionFilePath = Path.Combine(UnrealBuildTool.EngineDirectory.FullName, "Build" + Path.DirectorySeparatorChar + "Build.version");
-
-    //         FileReference BuildVersionFile = BuildVersion.GetDefaultFileName();
-
-    //         BuildVersion Version;
-    //         if (BuildVersion.TryRead(BuildVersionFile, out Version))
-    //         {
-    //             if (Version.MajorVersion == 4 && Version.MinorVersion == 26)
-    //             {
-    //                 return true;
-    //             }
-    //         }
-    //         return false;
-    //     }
-    // }
-
     private ConvaiPlatform GetConvaiPlatformInstance(ReadOnlyTargetRules Target)
     {
         var ConvaiPlatformType = System.Type.GetType("ConvaiPlatform_" + Target.Platform.ToString());
@@ -67,45 +47,34 @@ public class Convai : ModuleRules
         foreach (var arch in ConvaiPlatformInstance.Architectures())
         {
             string grpcPath = root + "grpc/" + "lib/" + ConvaiPlatformInstance.LibrariesPath + arch;
-            PublicAdditionalLibraries.AddRange(Directory.GetFiles(grpcPath));
-            //if (Target.Platform == UnrealTargetPlatform.Android)
-            //{
-                //string openSSLPath = root + "OpenSSL/" + "lib/" + ConvaiPlatformInstance.LibrariesPath + arch;
-                //PublicAdditionalLibraries.AddRange(Directory.GetFiles(openSSLPath));
-                //PrivateIncludePaths.AddRange(
-                //    new string[] {
-                //    Path.Combine(ThirdPartyPath, "OpenSSL", "Include"),
-                //    });
-            //}
-            //foreach (var a in PublicAdditionalLibraries)
-            //    Console.WriteLine(a);
+            
+            // Add files that end with .lib
+            PublicAdditionalLibraries.AddRange(Directory.GetFiles(grpcPath, "*.lib"));
+
+            // Add files that end with .a
+            PublicAdditionalLibraries.AddRange(Directory.GetFiles(grpcPath, "*.a"));
         }
         return false;
     }
 
     public Convai(ReadOnlyTargetRules Target) : base(Target)
-	{
+    {
+        // Common Settings
         DefaultBuildSettings = BuildSettingsVersion.Latest;
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+        PrecompileForTargets = PrecompileTargetsType.Any;
         ConvaiPlatformInstance = GetConvaiPlatformInstance(Target);
-        bUsePrecompiled = true;
-	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", 
-			"CoreUObject",
-			"Engine",
-			"InputCore" ,
-			"HTTP", 
-			"Json",
-			"JsonUtilities",        
-			"AudioMixer",
-			"AudioCaptureCore",
-			"AudioCapture",
-			"Voice",
-            "SignalProcessing",
-			"libOpus",
-            "OpenSSL",
-            "zlib"
-        });
+        
+        PrivateIncludePaths.AddRange(new string[] { "Convai/Private" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" , "HTTP", "Json", "JsonUtilities", "AudioMixer", "AudioCaptureCore", "AudioCapture", "Voice", "SignalProcessing", "libOpus", "OpenSSL", "zlib" });
+        PrivateDependencyModuleNames.AddRange(new string[] {"Projects"});
+        PublicDefinitions.AddRange(new string[] { "ConvaiDebugMode=1", "GOOGLE_PROTOBUF_NO_RTTI", "GPR_FORBID_UNREACHABLE_CODE", "GRPC_ALLOW_EXCEPTIONS=0" });
+
+        // Target Platform Specific Settings
+        if (Target.Platform == UnrealTargetPlatform.Win64)
+        {
+            bUsePrecompiled = true;
+        }
 
         if (Target.Platform == UnrealTargetPlatform.Android)
         {
@@ -114,39 +83,25 @@ public class Convai : ModuleRules
             AdditionalPropertiesForReceipt.Add("AndroidPlugin", Path.Combine(BuildPath, "Convai_AndroidAPL.xml"));
         }
 
+        if (Target.Platform == UnrealTargetPlatform.Mac)
+        {
+            PublicDefinitions.AddRange(new string[] { "GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL_INLINE=0", "GOOGLE_PROTOBUF_USE_UNALIGNED=0", "PROTOBUF_ENABLE_DEBUG_LOGGING_MAY_LEAK_PII=0" });
+        }
 
-        PrivateDependencyModuleNames.AddRange(new string[] {  });
+        if (Target.Platform == UnrealTargetPlatform.Mac || Target.Platform == UnrealTargetPlatform.IOS)
+        {
+            PrivateIncludePaths.AddRange(new string[] { Path.Combine(ThirdPartyPath, "gRPC", "Include_apple") });
+        }
+        else
+        {
+            PrivateIncludePaths.AddRange(new string[] { Path.Combine(ThirdPartyPath, "gRPC", "Include") });
+        }
 
-		// Opus codec thirdparty dependency
-		AddEngineThirdPartyPrivateStaticDependencies(Target, "libOpus");
-
+        // ThirdParty Libraries
+        AddEngineThirdPartyPrivateStaticDependencies(Target, "libOpus");
         AddEngineThirdPartyPrivateStaticDependencies(Target, "OpenSSL");
         AddEngineThirdPartyPrivateStaticDependencies(Target, "zlib");
 
-
-
-        //PublicDefinitions.Add("PROTOBUF_INLINE_NOT_IN_HEADERS=0");
-        //PublicDefinitions.Add("GPR_FORBID_UNREACHABLE_CODE=0");
-        PublicDefinitions.Add("ConvaiDebugMode=1");
-
-        PublicDefinitions.Add("GOOGLE_PROTOBUF_NO_RTTI");
-        PublicDefinitions.Add("GPR_FORBID_UNREACHABLE_CODE");
-        PublicDefinitions.Add("GRPC_ALLOW_EXCEPTIONS=0");
-
-        PrivateIncludePaths.AddRange(
-            new string[] {
-					Path.Combine(ThirdPartyPath, "gRPC", "Include"),
-					//Path.Combine(ThirdPartyPath, "OpenSSL\\1.1.1k\\include\\Android\\openssl"),
-			});
-
-
-
-        //if (Target.Platform == UnrealTargetPlatform.Win64)
-        {
-			PrecompileForTargets = PrecompileTargetsType.Any;
-		}
-
-        //ThirdParty Libraries
         ConfigurePlatform(Target, Target.Configuration);
     }
 }
@@ -186,6 +141,15 @@ public class ConvaiPlatform_Android : ConvaiPlatform
     public override string LibraryPostfixName { get { return ".a"; } }
 }
 
+public class ConvaiPlatform_Mac : ConvaiPlatform
+{
+   public override string LibrariesPath { get { return "mac/"; } }
+   public override List<string> Architectures() { return new List<string> { "" }; }
+   public override string LibraryPrefixName { get { return "lib"; } }
+   public override string LibraryPostfixName { get { return ".a"; } }
+}
+
+
 //public class ConvaiPlatform_Linux : ConvaiPlatform
 //{
 //    public override string LibrariesPath { get { return "linux/"; } }
@@ -197,18 +161,6 @@ public class ConvaiPlatform_Android : ConvaiPlatform
 //public class ConvaiPlatform_PS5 : ConvaiPlatform
 //{
 //    public override string LibrariesPath { get { return "ps5/"; } }
-//    public override List<string> Architectures() { return new List<string> { "" }; }
-//    public override string LibraryPrefixName { get { return "lib"; } }
-//    public override string LibraryPostfixName { get { return ".a"; } }
-//}
-
-//public class ConvaiPlatform_Mac : ConvaiPlatform
-//{
-//    public override string ConfigurationDir(UnrealTargetConfiguration Configuration)
-//    {
-//        return "";
-//    }
-//    public override string LibrariesPath { get { return "mac/"; } }
 //    public override List<string> Architectures() { return new List<string> { "" }; }
 //    public override string LibraryPrefixName { get { return "lib"; } }
 //    public override string LibraryPostfixName { get { return ".a"; } }

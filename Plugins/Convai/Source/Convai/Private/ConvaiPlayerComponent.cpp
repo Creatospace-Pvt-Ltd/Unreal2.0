@@ -2,19 +2,20 @@
 
 
 #include "ConvaiPlayerComponent.h"
+#include "ConvaiAudioCaptureComponent.h"
+#include "ConvaiChatbotComponent.h"
+#include "ConvaiActionUtils.h"
 #include "ConvaiUtils.h"
+#include "ConvaiDefinitions.h"
+
 #include "Misc/FileHelper.h"
 #include "Http.h"
 #include "ConvaiUtils.h"
 #include "Containers/UnrealString.h"
 #include "Kismet/GameplayStatics.h"
-#include "ConvaiDefinitions.h"
-#include "ConvaiActionUtils.h"
-#include "ConvaiChatbotComponent.h"
 #include "AudioMixerBlueprintLibrary.h"
 #include "Engine/GameEngine.h"
 #include "Sound/SoundWave.h"
-#include "ConvaiAudioCaptureComponent.h"
 #include "AudioDevice.h"
 #include "AudioMixerDevice.h"
 
@@ -36,7 +37,13 @@ static Audio::FMixerDevice* GetAudioMixerDeviceFromWorldContext(const UObject* W
 {
 	if (FAudioDevice* AudioDevice = GetAudioDeviceFromWorldContext(WorldContextObject))
 	{
-		if (!AudioDevice->IsAudioMixerEnabled())
+		#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 3
+		bool Found = AudioDevice != nullptr;
+		#else
+		bool Found = AudioDevice !=nullptr && AudioDevice->IsAudioMixerEnabled();
+		#endif
+
+		if (!Found)
 		{
 			return nullptr;
 		}
@@ -51,7 +58,10 @@ static Audio::FMixerDevice* GetAudioMixerDeviceFromWorldContext(const UObject* W
 UConvaiPlayerComponent::UConvaiPlayerComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	//SetIsReplicated(true);
 	bAutoActivate = true;
+	PlayerName = "Guest";
+
 	IsInit = false;
 	VoiceCaptureRingBuffer.Init(ConvaiConstants::VoiceCaptureRingBufferCapacity);
 	VoiceCaptureBuffer.Empty(ConvaiConstants::VoiceCaptureBufferSize);
@@ -62,13 +72,21 @@ UConvaiPlayerComponent::UConvaiPlayerComponent()
 	auto _FoundSubmix = ConstructorHelpers::FObjectFinder<USoundSubmixBase>(*FoundSubmixPath).Object;
 	if (_FoundSubmix != nullptr) {
 		AudioCaptureComponent->SoundSubmix = _FoundSubmix;
+        UE_LOG(ConvaiPlayerLog, Log, TEXT("UConvaiPlayerComponent: Found submix \"AudioInput\""));
 	}
 	else
 	{
 		UE_LOG(ConvaiPlayerLog, Warning, TEXT("UConvaiPlayerComponent: Audio Submix was not found, please ensure an audio submix exists at this directory: \"/ConvAI/Submixes/AudioInput\" then restart the Unreal Engine or "));
 	}
 }
- 
+
+void UConvaiPlayerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UConvaiPlayerComponent, PlayerName);
+}
+
 bool UConvaiPlayerComponent::Init()
 {
 	if (IsInit)
@@ -97,6 +115,21 @@ bool UConvaiPlayerComponent::Init()
 	IsInit = true;
 	Token = 0;
 	return true;
+}
+
+void UConvaiPlayerComponent::SetPlayerName(FString NewPlayerName)
+{
+	PlayerName = NewPlayerName;
+
+	if (GetIsReplicated())
+	{
+		SetPlayerNameServer(PlayerName);
+	}
+}
+
+void UConvaiPlayerComponent::SetPlayerNameServer_Implementation(const FString& NewPlayerName)
+{
+	PlayerName = NewPlayerName;
 }
 
 bool UConvaiPlayerComponent::GetDefaultCaptureDeviceInfo(FCaptureDeviceInfoBP& OutInfo)
@@ -410,12 +443,14 @@ void UConvaiPlayerComponent::StopVoiceChunkCapture()
 	//UE_LOG(ConvaiPlayerLog, Log, TEXT("Int16Buffer.GetNumSamples() %i, NumChannels %f,  SampleRate %f"), Int16Buffer.GetNumSamples(), NumChannels, SampleRate);
 	//UE_LOG(ConvaiPlayerLog, Log, TEXT("OutConverted.Num() %i"), OutConverted.Num());
 
+	if (IsRecording)
+	{
+		VoiceCaptureBuffer.Append((uint8*)OutConverted.GetData(), OutConverted.Num() * sizeof(int16));
+		return;
+	}
 
 	if (!ReplicateVoiceToNetwork)
 	{
-		if (IsRecording)
-			VoiceCaptureBuffer.Append((uint8*)OutConverted.GetData(), OutConverted.Num()*sizeof(int16));
-
 		if (IsStreaming)
 			VoiceCaptureRingBuffer.Enqueue((uint8*)OutConverted.GetData(), OutConverted.Num() * sizeof(int16));
 
@@ -488,7 +523,8 @@ void UConvaiPlayerComponent::StartTalking(
 	bool GenerateActions,
 	bool VoiceResponse,
 	bool RunOnServer,
-	bool StreamPlayerMic)
+	bool StreamPlayerMic,
+	bool UseServerAPI_Key)
 {
 	if (IsStreaming)
 	{
@@ -538,16 +574,19 @@ void UConvaiPlayerComponent::StartTalking(
 
 	ReplicateVoiceToNetwork = RunOnServer;
 	
+	FString ClientAPI_Key = UseServerAPI_Key ? FString("") : UConvaiUtils::GetAPI_Key();
+
 	if (RunOnServer)
 	{
 		if (IsValid(Environment))
-			StartTalkingServer(ConvaiChatbotComponent, true, Environment->Actions, Environment->Objects, Environment->Characters, Environment->MainCharacter, GenerateActions, VoiceResponse, StreamPlayerMic);
+			StartTalkingServer(ConvaiChatbotComponent, true, Environment->Actions, Environment->Objects, Environment->Characters, Environment->MainCharacter, GenerateActions, VoiceResponse, StreamPlayerMic, UseServerAPI_Key, ClientAPI_Key);
 		else
-			StartTalkingServer(ConvaiChatbotComponent, false, TArray<FString>(), TArray<FConvaiObjectEntry>(), TArray<FConvaiObjectEntry>(), FConvaiObjectEntry(), GenerateActions, VoiceResponse, StreamPlayerMic);
+			StartTalkingServer(ConvaiChatbotComponent, false, TArray<FString>(), TArray<FConvaiObjectEntry>(), TArray<FConvaiObjectEntry>(), FConvaiObjectEntry(), GenerateActions, VoiceResponse, StreamPlayerMic, UseServerAPI_Key, ClientAPI_Key);
 	}
 	else
 	{
-		ConvaiChatbotComponent->StartGetResponseStream(this, FString(""), Environment, GenerateActions, VoiceResponse, false, Token);
+		bool UseOverrideAPI_Key = false;
+		ConvaiChatbotComponent->StartGetResponseStream(this, FString(""), Environment, GenerateActions, VoiceResponse, false, UseOverrideAPI_Key, FString(""), Token);
 	}
 }
 
@@ -559,7 +598,6 @@ void UConvaiPlayerComponent::FinishTalking()
 		return;
 	}
 
-	UE_LOG(ConvaiPlayerLog, Log, TEXT("Finished Talking"));
 	StopVoiceChunkCapture();
 	AudioCaptureComponent->Stop();  //stop the AudioCaptureComponent
 	IsStreaming = false;
@@ -586,7 +624,9 @@ void UConvaiPlayerComponent::StartTalkingServer_Implementation(
 	FConvaiObjectEntry MainCharacter,
 	bool GenerateActions,
 	bool VoiceResponse,
-	bool StreamPlayerMic)
+	bool StreamPlayerMic,
+	bool UseServerAPI_Key,
+	const FString& ClientAPI_Key)
 {
 	// if "StreamPlayerMic" is true then "bShouldMuteGlobal" should be false, meaning we will play the player's audio on other clients
 	bShouldMuteGlobal = !StreamPlayerMic;
@@ -612,7 +652,8 @@ void UConvaiPlayerComponent::StartTalkingServer_Implementation(
 			Environment->Objects = Objects;
 			Environment->MainCharacter = MainCharacter;
 		}
-		ConvaiChatbotComponent->StartGetResponseStream(this, FString(""), Environment, GenerateActions, VoiceResponse, true, Token);
+		bool UseOverrideAPI_Key = !UseServerAPI_Key;
+		ConvaiChatbotComponent->StartGetResponseStream(this, FString(""), Environment, GenerateActions, VoiceResponse, true, UseOverrideAPI_Key, ClientAPI_Key, Token);
 	}
 }
 
@@ -622,7 +663,7 @@ void UConvaiPlayerComponent::FinishTalkingServer_Implementation()
 	GenerateNewToken();
 }
 
-void UConvaiPlayerComponent::SendText(UConvaiChatbotComponent* ConvaiChatbotComponent, FString Text, UConvaiEnvironment* Environment, bool GenerateActions, bool VoiceResponse, bool RunOnServer)
+void UConvaiPlayerComponent::SendText(UConvaiChatbotComponent* ConvaiChatbotComponent, FString Text, UConvaiEnvironment* Environment, bool GenerateActions, bool VoiceResponse, bool RunOnServer, bool UseServerAPI_Key)
 {
 	//FString Error;
 	//if (GenerateActions && !UConvaiActions::ValidateEnvironment(Environment, Error))
@@ -647,16 +688,20 @@ void UConvaiPlayerComponent::SendText(UConvaiChatbotComponent* ConvaiChatbotComp
 
 	ReplicateVoiceToNetwork = RunOnServer;
 
+	FString ClientAPI_Key = UseServerAPI_Key ? FString("") : UConvaiUtils::GetAPI_Key();
+
+
 	if (RunOnServer)
 	{
 		if (IsValid(Environment))
-			SendTextServer(ConvaiChatbotComponent, Text, true, Environment->Actions, Environment->Objects, Environment->Characters, Environment->MainCharacter, GenerateActions, VoiceResponse);
+			SendTextServer(ConvaiChatbotComponent, Text, true, Environment->Actions, Environment->Objects, Environment->Characters, Environment->MainCharacter, GenerateActions, VoiceResponse, UseServerAPI_Key, ClientAPI_Key);
 		else
-			SendTextServer(ConvaiChatbotComponent, Text, false, TArray<FString>(), TArray<FConvaiObjectEntry>(), TArray<FConvaiObjectEntry>(), FConvaiObjectEntry(), GenerateActions, VoiceResponse);
+			SendTextServer(ConvaiChatbotComponent, Text, false, TArray<FString>(), TArray<FConvaiObjectEntry>(), TArray<FConvaiObjectEntry>(), FConvaiObjectEntry(), GenerateActions, VoiceResponse, UseServerAPI_Key, ClientAPI_Key);
 	}
 	else
 	{
-		ConvaiChatbotComponent->StartGetResponseStream(this, Text, Environment, GenerateActions, VoiceResponse, false, Token);
+		bool UseOverrideAPI_Key = false;
+		ConvaiChatbotComponent->StartGetResponseStream(this, Text, Environment, GenerateActions, VoiceResponse, false, UseOverrideAPI_Key, FString(""), Token);
 
 		// Invalidate the token by generating a new one
 		GenerateNewToken();
@@ -672,7 +717,9 @@ void UConvaiPlayerComponent::SendTextServer_Implementation(
 	const TArray<FConvaiObjectEntry>& Characters,
 	FConvaiObjectEntry MainCharacter,
 	bool GenerateActions,
-	bool VoiceResponse)
+	bool VoiceResponse,
+	bool UseServerAPI_Key,
+	const FString& ClientAPI_Key)
 {
 	if (!IsValid(ConvaiChatbotComponent))
 	{
@@ -693,7 +740,8 @@ void UConvaiPlayerComponent::SendTextServer_Implementation(
 	Environment->Objects = Objects;
 	Environment->MainCharacter = MainCharacter;
 
-	ConvaiChatbotComponent->StartGetResponseStream(this, Text, Environment, GenerateActions, VoiceResponse, true, Token);
+	bool UseOverrideAPI_Key = !UseServerAPI_Key;
+	ConvaiChatbotComponent->StartGetResponseStream(this, Text, Environment, GenerateActions, VoiceResponse, true, UseOverrideAPI_Key, ClientAPI_Key, Token);
 
 	// Invalidate the token by generating a new one
 	GenerateNewToken();

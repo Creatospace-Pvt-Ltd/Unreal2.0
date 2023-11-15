@@ -97,7 +97,7 @@ struct FConvaiResultAction
 
 	/** The object or character whom the action is to be made on*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Convai|Action API")
-		FConvaiObjectEntry RelatedObjectOrCharacter;
+	FConvaiObjectEntry RelatedObjectOrCharacter;
 
 	/** The actual string of the action without any preprocessing*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Convai|Action API")
@@ -105,7 +105,61 @@ struct FConvaiResultAction
 
 	/** Has extra parameters*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Convai|Action API")
-		FConvaiExtraParams ConvaiExtraParams;
+	FConvaiExtraParams ConvaiExtraParams;
+};
+
+USTRUCT(BlueprintType)
+struct FConvaiBlendshapeParameters
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Convai|LipSync")
+	TArray<FName> TargetNames;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Convai|LipSync")
+	float Multiplyer = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Convai|LipSync")
+	float Offset = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Convai|LipSync")
+	bool UseOverrideValue = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Convai|LipSync")
+	bool IgnoreGlobalModifiers = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Convai|LipSync")
+	float OverrideValue = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Convai|LipSync")
+	float ClampMinValue = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Convai|LipSync")
+	float ClampMaxValue = 1;
+};
+
+USTRUCT()
+struct FAnimationFrame
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	int32 FrameIndex;
+
+	UPROPERTY()
+	TMap<FName, float> BlendShapes;
+};
+
+USTRUCT()
+struct FAnimationSequence
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY()
+	TArray<FAnimationFrame> AnimationFrames;
+
+	UPROPERTY()
+	float Duration;
 };
 
 UCLASS(Blueprintable)
@@ -153,10 +207,34 @@ public:
 		Actions.Empty();
 	}
 
-	UFUNCTION(BlueprintCallable, category = "Convai|Action API")
-		void AddObject(FConvaiObjectEntry Object)
+	bool FindObject(FString ObjectName, FConvaiObjectEntry& OutObject)
 	{
-		Objects.AddUnique(Object);
+		for (FConvaiObjectEntry& o : Objects)
+		{
+			if (ObjectName == o.Name)
+			{
+				OutObject = o;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	UFUNCTION(BlueprintCallable, category = "Convai|Action API")
+	void AddObject(FConvaiObjectEntry Object)
+	{
+		// Replace old object that has the same name with the new object
+		FConvaiObjectEntry ExistingObject;
+		if (FindObject(Object.Name, ExistingObject))
+		{
+			ExistingObject.Description = Object.Description;
+			ExistingObject.OptionalPositionVector = Object.OptionalPositionVector;
+			ExistingObject.Ref = Object.Ref;
+		}
+		else
+		{
+			Objects.AddUnique(Object);
+		}
 	}
 
 	/**
@@ -191,11 +269,36 @@ public:
 		Objects.Empty();
 	}
 
+	bool FindCharacter(FString CharacterName, FConvaiObjectEntry& OutCharacter)
+	{
+		for (FConvaiObjectEntry& c : Characters)
+		{
+			if (CharacterName == c.Name)
+			{
+				OutCharacter = c;
+				return true;
+			}
+		}
+		return false;
+	}
+
 	UFUNCTION(BlueprintCallable, category = "Convai|Action API")
 		void AddCharacter(FConvaiObjectEntry Character)
 	{
-		Characters.AddUnique(Character);
+		// Replace old character that has the same name with the new character
+		FConvaiObjectEntry ExistingCharacter;
+		if (FindCharacter(Character.Name, ExistingCharacter))
+		{
+			ExistingCharacter.Description = Character.Description;
+			ExistingCharacter.OptionalPositionVector = Character.OptionalPositionVector;
+			ExistingCharacter.Ref = Character.Ref;
+		}
+		else
+		{
+			Characters.AddUnique(Character);
+		}
 	}
+
 
 	/**
 		*    Adds a list of characters to the Environment object

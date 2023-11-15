@@ -1,20 +1,24 @@
 // Copyright 2022 Convai Inc. All Rights Reserved.
 
 #include "ConvaiChatbotComponent.h"
-#include "ConvaiActionUtils.h"
-#include "ConvaiUtils.h"
 #include "ConvaiPlayerComponent.h"
 #include "../Convai.h"
+#include "ConvaiGRPC.h"
+#include "ConvaiActionUtils.h"
+#include "ConvaiUtils.h"
+#include "LipSyncInterface.h"
+
 #include "Sound/SoundWaveProcedural.h"
 #include "Net/UnrealNetwork.h"
 #include "ConvaiChatBotProxy.h"
-#include "ConvaiGRPC.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 DEFINE_LOG_CATEGORY(ConvaiChatbotComponentLog);
 
 UConvaiChatbotComponent::UConvaiChatbotComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	//SetIsReplicated(true);
 	InterruptVoiceFadeOutDuration = 1.0;
 }
 
@@ -28,6 +32,8 @@ void UConvaiChatbotComponent::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	DOREPLIFETIME(UConvaiChatbotComponent, VoiceType);
 	DOREPLIFETIME(UConvaiChatbotComponent, Backstory);
 	DOREPLIFETIME(UConvaiChatbotComponent, ReadyPlayerMeLink);
+	DOREPLIFETIME(UConvaiChatbotComponent, CurrentConvaiPlayerComponent);
+	DOREPLIFETIME(UConvaiChatbotComponent, ActionsQueue);
 }
 
 bool UConvaiChatbotComponent::IsInConversation()
@@ -61,7 +67,164 @@ void UConvaiChatbotComponent::LoadCharacter(FString NewCharacterID)
 	ConvaiGetDetails();
 }
 
-void UConvaiChatbotComponent::StartGetResponseStream(UConvaiPlayerComponent* InConvaiPlayerComponent, FString InputText, UConvaiEnvironment* InEnvironment, bool InGenerateActions, bool InVoiceResponse, bool RunOnServer, uint32 InToken)
+void UConvaiChatbotComponent::AppendActionsToQueue(TArray<FConvaiResultAction> NewActions)
+{
+	if (ActionsQueue.Num() > 0)
+	{
+		FConvaiResultAction FirstAction = ActionsQueue[0];
+		NewActions.Insert(FirstAction, 0);
+		ActionsQueue = NewActions;
+	}
+	else
+	{
+		ActionsQueue = NewActions;
+	}
+}
+
+void UConvaiChatbotComponent::HandleActionCompletion(bool IsSuccessful, float Delay)
+{
+	if (!UConvaiUtils::IsNewActionSystemEnabled())
+	{
+
+		UE_LOG(ConvaiChatbotComponentLog, Warning, TEXT("HandleActionCompletion: New Action System is not enabled in settings"));
+		return;
+	}
+
+
+	if (IsSuccessful)
+		DequeueAction();
+
+	if (IsActionsQueueEmpty())
+		return;
+
+	// Create a timer to call StartFirstAction after a delay
+	if (Delay > 0.0f)
+	{
+		FTimerHandle TimerHandle;
+		FTimerDelegate TimerDelegate;
+
+		// Bind the function with parameters
+		TimerDelegate.BindUFunction(this, FName("StartFirstAction"));
+
+		// Set the timer
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, Delay, false);
+	}
+	else
+	{
+		// Call the function immediately
+		StartFirstAction();
+	}
+}
+
+bool UConvaiChatbotComponent::IsActionsQueueEmpty()
+{
+	if (!UConvaiUtils::IsNewActionSystemEnabled())
+	{
+
+		UE_LOG(ConvaiChatbotComponentLog, Warning, TEXT("IsActionsQueueEmpty: New Action System is not enabled in settings"));
+		return true;
+	}
+
+	return ActionsQueue.Num() == 0;
+}
+
+bool UConvaiChatbotComponent::FetchFirstAction(FConvaiResultAction& ConvaiResultAction)
+{
+	if (!UConvaiUtils::IsNewActionSystemEnabled())
+	{
+		UE_LOG(ConvaiChatbotComponentLog, Warning, TEXT("FetchFirstAction: New Action System is not enabled in settings"));
+		return false;
+	}
+
+	if (ActionsQueue.Num() == 0)
+		return false;
+
+	ConvaiResultAction = ActionsQueue[0];
+	return true;
+}
+
+bool UConvaiChatbotComponent::DequeueAction()
+{
+	if (ActionsQueue.Num() > 0)
+	{
+		ActionsQueue.RemoveAt(0);
+		return true;
+	}
+	return false;
+}
+
+bool UConvaiChatbotComponent::StartFirstAction()
+{
+	FConvaiResultAction ConvaiResultAction;
+	if (FetchFirstAction(ConvaiResultAction))
+	{
+		if (ConvaiResultAction.Action.Compare(FString("None"), ESearchCase::IgnoreCase) == 0)
+		{
+			HandleActionCompletion(true, 0);
+			return true;
+		}
+
+		AsyncTask(ENamedThreads::GameThread, [this, ConvaiResultAction]
+		{
+			TriggerNamedBlueprintAction(ConvaiResultAction.Action, ConvaiResultAction);
+		});
+		return true;
+	}
+	return false;
+}
+
+bool UConvaiChatbotComponent::TriggerNamedBlueprintAction(const FString& ActionName, FConvaiResultAction ConvaiActionStruct)
+{
+	if (AActor* Owner = GetOwner())
+	{
+		UFunction* Function = Owner->FindFunction(FName(*ActionName));
+
+		if (Function)
+		{
+			// Check the function signature
+			bool bCanCall = false;
+			TFieldIterator<FStructProperty> PropIt(Function);
+			if (PropIt)
+			{
+				FStructProperty* StructProp = *PropIt;
+				if (StructProp->GetClass() == FStructProperty::StaticClass())
+				{
+					//FStructProperty* StructProp = Cast<FStructProperty>(ParamProp);
+					if (StructProp && StructProp->Struct == FConvaiResultAction::StaticStruct())
+					{
+						bCanCall = true;
+					}
+				}
+			}
+			else
+			{
+				bCanCall = true; // No parameters
+			}
+
+			if (bCanCall)
+			{
+				Owner->ProcessEvent(Function, PropIt ? &ConvaiActionStruct : nullptr);
+				return true;
+			}
+			else
+			{
+				UE_LOG(ConvaiChatbotComponentLog, Warning, TEXT("TriggerNamedBlueprintAction: Found a function/event with the same name of action: %s.\
+					 However, could not run due to mismatched parameter type. Make sure the function/event has no input parameters or take a parameter of type \"ConvaiResultAction\""), *ActionName);
+			}
+		}
+		else
+		{
+			//UE_LOG(ConvaiChatbotComponentLog, Log, TEXT("TriggerNamedBlueprintAction: Could not find an event or function with action name: %s"), *ActionName);
+		}
+	}
+	else
+	{
+		UE_LOG(ConvaiChatbotComponentLog, Warning, TEXT("TriggerNamedBlueprintAction: Could not find pointer to owner"));
+	}
+	return false;
+}
+
+void UConvaiChatbotComponent::StartGetResponseStream(UConvaiPlayerComponent* InConvaiPlayerComponent, FString InputText, UConvaiEnvironment* InEnvironment, bool InGenerateActions, bool InVoiceResponse, bool RunOnServer, bool UseOverrideAPI_Key, FString OverrideAPI_Key, uint32 InToken)
 {
 	if (!IsValid(InConvaiPlayerComponent))
 	{
@@ -79,17 +242,21 @@ void UConvaiChatbotComponent::StartGetResponseStream(UConvaiPlayerComponent* InC
 		Environment = InEnvironment;
 
 	FString Error;
-	if (GenerateActions && !UConvaiActions::ValidateEnvironment(Environment, Error))
+	bool ValidEnvironment = UConvaiActions::ValidateEnvironment(Environment, Error);
+	if (GenerateActions && !ValidEnvironment)
 	{
 		UE_LOG(ConvaiPlayerLog, Warning, TEXT("StartGetResponseStream: %s"), *Error);
 		UE_LOG(ConvaiPlayerLog, Log, TEXT("StartGetResponseStream: Environment object seems to have issues -> setting GenerateActions to false"));
 		GenerateActions = false;
 	}
 
-	//if (IsProcessing())
+	// Set the main character (player) to be the one talking
+	//if (ValidEnvironment && Environment->MainCharacter.Name != InConvaiPlayerComponent->PlayerName)
 	//{
-	//	UE_LOG(ConvaiChatbotComponentLog, Warning, TEXT("StartGetResponseStream: character is still processing the recent response, use \"Is Processing\" BP function to find out if a character is currently processing the response or not"));
-	//	return;
+	//	FConvaiObjectEntry MainCharacter;
+	//	MainCharacter.Name = InConvaiPlayerComponent->PlayerName;
+	//	MainCharacter.Ref = InConvaiPlayerComponent;
+	//	Environment->MainCharacter = MainCharacter;
 	//}
 
 	if (GetIsTalking() || IsProcessing())
@@ -106,15 +273,26 @@ void UConvaiChatbotComponent::StartGetResponseStream(UConvaiPlayerComponent* InC
 
 	if (!TextInput)
 	{
-		CurrentConvaiPlayerComponent = InConvaiPlayerComponent;
 		StreamInProgress = true;
 	}
+	else
+	{
+		OnTranscriptionReceived(UserText, true, true);
+	}
 
-	Start_GRPC_Request();
+	CurrentConvaiPlayerComponent = InConvaiPlayerComponent;
+
+	Start_GRPC_Request(UseOverrideAPI_Key, OverrideAPI_Key);
 }
 
 void UConvaiChatbotComponent::InterruptSpeech(float InVoiceFadeOutDuration)
 {
+	// Broadcast to clients
+	if (UKismetSystemLibrary::IsServer(this) && ReplicateVoiceToNetwork)
+	{
+		Broadcast_InterruptSpeech(InVoiceFadeOutDuration);
+	}
+
 	if (GetIsTalking() || IsProcessing())
 	{
 		UE_LOG(ConvaiChatbotComponentLog, Log, TEXT("InterruptSpeech: Interrupting character"));
@@ -125,14 +303,28 @@ void UConvaiChatbotComponent::InterruptSpeech(float InVoiceFadeOutDuration)
 			OnTranscriptionReceived(LastTranscription, true, true);
 
 		if (ReceivedFinalData == false)
-			onResponseDataReceived(FString(""), TArray<uint8>(), 0, true);
+			onResponseDataReceived(FString(""), TArray<uint8>(), TArray<FAnimationFrame>(), 0, true);
 	}
 }
 
-void UConvaiChatbotComponent::Start_GRPC_Request()
+void UConvaiChatbotComponent::Broadcast_InterruptSpeech_Implementation(float InVoiceFadeOutDuration)
 {
+	// Execute if you are a client
+	if (!UKismetSystemLibrary::IsServer(this))
+	{
+		InterruptSpeech(InVoiceFadeOutDuration);
+	}
+}
+
+void UConvaiChatbotComponent::Start_GRPC_Request(bool UseOverrideAPI_Key, FString OverrideAPI_Key)
+{
+	FString API_Key = UseOverrideAPI_Key ? OverrideAPI_Key : UConvaiUtils::GetAPI_Key();
+
+	bool RequireFaceData = ConvaiLipSyncExtended == nullptr? false : ConvaiLipSyncExtended->RequiresPreGeneratedFaceData();
+	RequireFaceData = RequireFaceData && VoiceResponse;
+
 	// Create the request proxy
-	ConvaiGRPCGetResponseProxy = UConvaiGRPCGetResponseProxy::CreateConvaiGRPCGetResponseProxy(this, UserText, CharacterID, VoiceResponse, SessionID, Environment, GenerateActions);
+	ConvaiGRPCGetResponseProxy = UConvaiGRPCGetResponseProxy::CreateConvaiGRPCGetResponseProxy(this, UserText, CharacterID, VoiceResponse, RequireFaceData, SessionID, Environment, GenerateActions, API_Key);
 
 	// Bind the needed delegates
 	Bind_GRPC_Request_Delegates();
@@ -206,28 +398,84 @@ void UConvaiChatbotComponent::onMicrophoneDataReceived()
 //	}
 //}
 
+void UConvaiChatbotComponent::Broadcast_OnTranscriptionReceived_Implementation(const FString& Transcription, bool IsTranscriptionReady, bool IsFinal)
+{
+	// Execute if you are a client
+	if (!UKismetSystemLibrary::IsServer(this))
+	{
+		OnTranscriptionReceived(Transcription, IsTranscriptionReady, IsFinal);
+	}
+}
+
+void UConvaiChatbotComponent::Broadcast_onResponseDataReceived_Implementation(const FString& ReceivedText, bool IsFinal)
+{
+	if (!UKismetSystemLibrary::IsServer(this))
+	{
+		onResponseDataReceived(ReceivedText, TArray<uint8>(), TArray<FAnimationFrame>(), 0, IsFinal);
+	}
+}
+
+void UConvaiChatbotComponent::Broadcast_onSessionIDReceived_Implementation(const FString& ReceivedSessionID)
+{
+	if (!UKismetSystemLibrary::IsServer(this))
+	{
+		onSessionIDReceived(ReceivedSessionID);
+	}
+}
+
+void UConvaiChatbotComponent::Broadcast_onActionSequenceReceived_Implementation(const TArray<FConvaiResultAction>& ReceivedSequenceOfActions)
+{
+	if (!UKismetSystemLibrary::IsServer(this))
+	{
+		onActionSequenceReceived(ReceivedSequenceOfActions);
+	}
+}
+
 void UConvaiChatbotComponent::OnTranscriptionReceived(FString Transcription, bool IsTranscriptionReady, bool IsFinal)
 {
+	// Broadcast to clients
+	if (UKismetSystemLibrary::IsServer(this) && ReplicateVoiceToNetwork)
+	{
+		Broadcast_OnTranscriptionReceived(Transcription, IsTranscriptionReady, IsFinal);
+	}
+
 	AsyncTask(ENamedThreads::GameThread, [this, Transcription, IsTranscriptionReady, IsFinal]
 		{
+			FString PlayerName = IsValid(CurrentConvaiPlayerComponent) ? CurrentConvaiPlayerComponent->PlayerName : FString("Unknown");
+			OnTranscriptionReceivedEvent_V2.Broadcast(this, CurrentConvaiPlayerComponent, PlayerName, Transcription, IsTranscriptionReady, IsFinal);
+
+			// Run the deprecated event
 			OnTranscriptionReceivedEvent.Broadcast(Transcription, IsTranscriptionReady, IsFinal);
 		});
 	LastTranscription = Transcription;
 	ReceivedFinalTranscription = IsFinal;
 }
 
-void UConvaiChatbotComponent::onResponseDataReceived(const FString ReceivedText, const TArray<uint8>& ReceivedAudio, uint32 SampleRate, bool IsFinal)
+void UConvaiChatbotComponent::onResponseDataReceived(const FString ReceivedText, const TArray<uint8>& ReceivedAudio, TArray<FAnimationFrame> FaceData, uint32 SampleRate, bool IsFinal)
 {
-	AsyncTask(ENamedThreads::GameThread, [this, ReceivedText, ReceivedAudio, SampleRate, IsFinal]
+	// Broadcast to clients
+	if (UKismetSystemLibrary::IsServer(this) && ReplicateVoiceToNetwork)
+	{
+		Broadcast_onResponseDataReceived(ReceivedText, IsFinal);
+	}
+
+	AsyncTask(ENamedThreads::GameThread, [this, ReceivedText, ReceivedAudio, FaceData, SampleRate, IsFinal]
 		{
 			float AudioDuration = 0;
 			if (VoiceResponse && ReceivedAudio.Num() > 0)
 			{
-				AddPCMDataToSend(ReceivedAudio, false, SampleRate, 1); // Should be called in the game thread
 				AudioDuration = float(ReceivedAudio.Num() - 44) / float(SampleRate * 2); // Assuming 1 channel
+				FAnimationSequence FaceSequence;
+				FaceSequence.AnimationFrames = FaceData;
+				FaceSequence.Duration = AudioDuration;
+
+				AddPCMDataToSend(ReceivedAudio, FaceSequence, false, SampleRate, 1); // Should be called in the game thread
 			}
 
 			// Send text and audio duration to blueprint event
+			OnTextReceivedEvent_V2.Broadcast(this, CurrentConvaiPlayerComponent, CharacterName, ReceivedText, AudioDuration, IsFinal);
+
+			// Run the deprecated event
 			OnTextReceivedEvent.Broadcast(CharacterName, ReceivedText, AudioDuration, IsFinal);
 		});
 	ReceivedFinalData = IsFinal;
@@ -235,13 +483,41 @@ void UConvaiChatbotComponent::onResponseDataReceived(const FString ReceivedText,
 
 void UConvaiChatbotComponent::onSessionIDReceived(const FString ReceivedSessionID)
 {
+	// Broadcast to clients
+	if (UKismetSystemLibrary::IsServer(this) && ReplicateVoiceToNetwork)
+	{
+		Broadcast_onSessionIDReceived(ReceivedSessionID);
+	}
+
 	SessionID = ReceivedSessionID;
 }
 
 void UConvaiChatbotComponent::onActionSequenceReceived(const TArray<FConvaiResultAction>& ReceivedSequenceOfActions)
 {
+	// Broadcast to clients
+	if (UKismetSystemLibrary::IsServer(this) && ReplicateVoiceToNetwork)
+	{
+		Broadcast_onActionSequenceReceived(ReceivedSequenceOfActions);
+	}
+
+	if (UConvaiUtils::IsNewActionSystemEnabled())
+	{
+		bool ActionsAlreadyStarted = !IsActionsQueueEmpty();
+
+		// Fill the current queue of actions
+		AppendActionsToQueue(ReceivedSequenceOfActions);
+
+		if (!ActionsAlreadyStarted)
+			StartFirstAction();
+	}
+
 	// Broadcast the actions
-	AsyncTask(ENamedThreads::GameThread, [this, ReceivedSequenceOfActions] {OnActionReceivedEvent.Broadcast(ReceivedSequenceOfActions); });
+	AsyncTask(ENamedThreads::GameThread, [this, ReceivedSequenceOfActions] {
+		OnActionReceivedEvent_V2.Broadcast(this, CurrentConvaiPlayerComponent, ReceivedSequenceOfActions);
+
+		// Run the deprecated event
+		OnActionReceivedEvent.Broadcast(ReceivedSequenceOfActions); 
+		});
 }
 
 void UConvaiChatbotComponent::onFinishedReceivingData()

@@ -2,6 +2,7 @@
 
 #include "ConvaiSubsystem.h"
 #include "ConvaiAndroid.h"
+#include "Engine/Engine.h"
 
 THIRD_PARTY_INCLUDES_START
 // grpc includes
@@ -96,7 +97,17 @@ uint32 FgRPCClient::Run()
 		if (got_tag)
 		{
 			FgRPC_Delegate* gRPC_Delegate = static_cast<FgRPC_Delegate*>(got_tag);
-			AsyncTask(ENamedThreads::GameThread, [gRPC_Delegate, ok] {gRPC_Delegate->ExecuteIfBound(ok); });
+			AsyncTask(ENamedThreads::GameThread, [&gRPC_Delegate, &ok, this]
+			{
+				if (bIsRunning)
+				{
+					gRPC_Delegate->ExecuteIfBound(ok);
+				}
+				else
+				{
+					UE_LOG(ConvaiSubsystemLog, Log, TEXT("Could not run gRPC delegate due to thread closing down"));
+				}
+			});
 		}
 		else
 		{
@@ -121,8 +132,11 @@ void FgRPCClient::StartStub()
 void FgRPCClient::CreateChannel()
 {
 	UE_LOG(ConvaiSubsystemLog, Log, TEXT("gRPC Creating Channel..."));
-	Channel = grpc::CreateChannel(Target, Creds);
-	
+	grpc::ChannelArguments args;
+	args.SetMaxReceiveMessageSize(2147483647);
+
+	Channel = grpc::CreateCustomChannel(Target, Creds, args);
+
 	//Channel->NotifyOnStateChange(grpc_connectivity_state::GRPC_CHANNEL_CONNECTING, std::chrono::system_clock::time_point().max(), &cq_, (void*)&OnStateChangeDelegate);
 }
 
@@ -181,8 +195,8 @@ void FgRPCClient::Exit()
 FgRPCClient::FgRPCClient(std::string InTarget,
 	const std::shared_ptr<grpc::ChannelCredentials>& InCreds)
 	: bIsRunning(false),
-	Target(InTarget),
-	Creds(InCreds)
+	Creds(InCreds),
+	Target(InTarget)
 {
 }
 
@@ -214,7 +228,7 @@ void UConvaiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 #if PLATFORM_WINDOWS
 	auto channel_creds = grpc::SslCredentials(getSslOptions());
-#elif PLATFORM_ANDROID
+#else
 	auto channel_creds = grpc::SslCredentials(grpc::SslCredentialsOptions());
 #endif
 	gRPC_Runnable = MakeShareable(new FgRPCClient(std::string("stream.convai.com"), channel_creds));
@@ -222,7 +236,13 @@ void UConvaiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	gRPC_Runnable->StartStub();
 	UE_LOG(ConvaiSubsystemLog, Log, TEXT("UConvaiSubsystem Started"));
 
+	#if PLATFORM_ANDROID
 	GetAndroidMicPermission();
+	#endif
+
+	#ifdef __APPLE__
+    GetAppleMicPermission();
+	#endif
 }
 
 void UConvaiSubsystem::Deinitialize()

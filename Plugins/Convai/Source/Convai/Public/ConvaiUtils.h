@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "ConvaiDefinitions.h"
 #include "ConvaiUtils.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(ConvaiUtilsLog, Log, All);
@@ -12,6 +13,7 @@ DECLARE_LOG_CATEGORY_EXTERN(ConvaiFormValidationLog, Log, All);
 class USoundWave;
 class APlayerController;
 class UObject;
+class UConvaiSubsystem;
 
 /**
  *
@@ -23,26 +25,48 @@ class UConvaiUtils : public UBlueprintFunctionLibrary
 
 public:
 
-	UFUNCTION(BlueprintCallable, Category = "Convai|Utils")
-		static void StereoToMono(TArray<uint8> stereoWavBytes, TArray<uint8>& monoWavBytes);
+	static UConvaiSubsystem* GetConvaiSubsystem(const UObject* WorldContextObject);
 
 	UFUNCTION(BlueprintCallable, Category = "Convai|Utils")
-		static bool ReadFileAsByteArray(FString FilePath, TArray<uint8>& Bytes);
+	static void StereoToMono(TArray<uint8> stereoWavBytes, TArray<uint8>& monoWavBytes);
 
 	UFUNCTION(BlueprintCallable, Category = "Convai|Utils")
-		static bool SaveByteArrayAsFile(FString FilePath, TArray<uint8> Bytes);
+	static bool ReadFileAsByteArray(FString FilePath, TArray<uint8>& Bytes);
 
 	UFUNCTION(BlueprintCallable, Category = "Convai|Utils")
-		static FString ByteArrayToString(TArray<uint8> Bytes);
+	static bool SaveByteArrayAsFile(FString FilePath, TArray<uint8> Bytes);
+
+	UFUNCTION(BlueprintCallable, Category = "Convai|Utils")
+	static FString ByteArrayToString(TArray<uint8> Bytes);
 
 	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Convai", meta = (WorldContext = "WorldContextObject", AutoCreateRefTerm = "IncludedCharacters, ExcludedCharacters"))
-		static void ConvaiGetLookedAtCharacter(UObject* WorldContextObject, APlayerController* PlayerController, float Radius, bool PlaneView, TArray<UObject*> IncludedCharacters, TArray<UObject*> ExcludedCharacters, UConvaiChatbotComponent*& ConvaiCharacter, bool& Found);
+	static void ConvaiGetLookedAtCharacter(UObject* WorldContextObject, APlayerController* PlayerController, float Radius, bool PlaneView, TArray<UObject*> IncludedCharacters, TArray<UObject*> ExcludedCharacters, UConvaiChatbotComponent*& ConvaiCharacter, bool& Found);
+	
+	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Convai", meta = (WorldContext = "WorldContextObject"))
+	static void ConvaiGetAllPlayerComponents(UObject* WorldContextObject, TArray<class UConvaiPlayerComponent*>& ConvaiPlayerComponents);
 
-	UFUNCTION(BlueprintCallable, Category = "Convai")
+	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Convai", meta = (WorldContext = "WorldContextObject"))
+	static void ConvaiGetAllChatbotComponents(UObject* WorldContextObject, TArray<class UConvaiChatbotComponent*>& ConvaiChatbotComponents);
+
+	UFUNCTION(BlueprintCallable, Category = "Convai|Settings")
 	static void SetAPI_Key(FString API_Key);	
 	
-	UFUNCTION(BlueprintPure, Category = "Convai")
+	UFUNCTION(BlueprintPure, Category = "Convai|Settings")
 	static FString GetAPI_Key();
+
+	UFUNCTION(BlueprintPure, Category = "Convai|Settings")
+	static bool IsNewActionSystemEnabled();
+
+	UFUNCTION(BlueprintPure, Category = "Convai")
+	static void GetPluginInfo(FString PluginName, bool& Found, FString& VersionName, FString& EngineVersion, FString& FriendlyName);
+
+	UFUNCTION(BlueprintPure, Category = "Convai")
+	static void GetPlatformInfo(FString& EngineVersion, FString& PlatformName);
+
+	UFUNCTION(BlueprintPure, Category = "Convai")
+	static TMap<FName, float> MapBlendshapes(const TMap<FName,float>& InputBlendshapes, const TMap<FName, FConvaiBlendshapeParameters>& BlendshapeMap, float GlobalMultiplier, float GlobalOffset);
+
+	static TArray<uint8> ExtractPCMDataFromSoundWave(USoundWave* SoundWave, int32& OutSampleRate);
 
 	static void PCMDataToWav(TArray<uint8> InPCMBytes, TArray<uint8>& OutWaveFileData, int NumChannels, int SampleRate);
 
@@ -50,11 +74,17 @@ public:
 
 	static USoundWave* WavDataToSoundWave(TArray<uint8> InWavData);
 
+	static void ResampleAudio(float currentSampleRate, float targetSampleRate, int numChannels, bool reduceToMono, int16* currentPcmData, int numSamplesToConvert, TArray<int16>& outResampledPcmData);
+
 	static void ResampleAudio(float currentSampleRate, float targetSampleRate, int numChannels, bool reduceToMono, const TArray<int16>& currentPcmData, int numSamplesToConvert, TArray<int16>& outResampledPcmData);
 
 	static FString FUTF8ToFString(const char* StringToConvert);
-};
 
+	static int LevenshteinDistance(const FString& s, const FString& t);
+
+	static TArray<FAnimationFrame> ParseJsonToAnimationData(const FString& JsonString);
+
+};
 
 UCLASS()
 class UConvaiFormValidation : public UBlueprintFunctionLibrary

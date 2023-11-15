@@ -10,10 +10,19 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(ConvaiChatbotComponentLog, Log, All);
 
-DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_ThreeParams(FOnTranscriptionReceivedSignature, UConvaiChatbotComponent, OnTranscriptionReceivedEvent, FString, Transcription, bool, IsTranscriptionReady, bool, IsFinal);
-DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_FourParams(FOnTextReceivedSignature, UConvaiChatbotComponent, OnTextReceivedEvent, FString, CharacterName, FString, BotText, float, AudioDuration, bool, IsFinal);
-DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FOnActionReceivedSignature, UConvaiChatbotComponent, OnActionReceivedEvent, const TArray<FConvaiResultAction>&, SequenceOfActions);
-DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FOnCharacterDataLoadSignature, UConvaiChatbotComponent, OnCharacterDataLoadEvent, bool, Success);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_ThreeParams(FOnTranscriptionReceivedSignature_Deprecated, UConvaiChatbotComponent, OnTranscriptionReceivedEvent, FString, Transcription, bool, IsTranscriptionReady, bool, IsFinal);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_SixParams(FOnTranscriptionReceivedSignature_V2, UConvaiChatbotComponent, OnTranscriptionReceivedEvent_V2, UConvaiChatbotComponent*, ChatbotComponent, UConvaiPlayerComponent*, InteractingPlayerComponent, FString, PlayerName, FString, Transcription, bool, IsTranscriptionReady, bool, IsFinal);
+
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_FourParams(FOnTextReceivedSignature_Deprecated, UConvaiChatbotComponent, OnTextReceivedEvent, FString, CharacterName, FString, BotText, float, AudioDuration, bool, IsFinal);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_SixParams(FOnTextReceivedSignature_V2, UConvaiChatbotComponent, OnTextReceivedEvent_V2, UConvaiChatbotComponent*, ChatbotComponent, UConvaiPlayerComponent*, InteractingPlayerComponent, FString, CharacterName, FString, BotText, float, AudioDuration, bool, IsFinal);
+
+
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FOnActionReceivedSignature_Deprecated, UConvaiChatbotComponent, OnActionReceivedEvent, const TArray<FConvaiResultAction>&, SequenceOfActions);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_ThreeParams(FOnActionReceivedSignature_V2, UConvaiChatbotComponent, OnActionReceivedEvent_V2, UConvaiChatbotComponent*, ChatbotComponent, UConvaiPlayerComponent*, InteractingPlayerComponent, const TArray<FConvaiResultAction>&, SequenceOfActions);
+
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FOnCharacterDataLoadSignature_Deprecated, UConvaiChatbotComponent, OnCharacterDataLoadEvent, bool, Success);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_TwoParams(FOnCharacterDataLoadSignature_V2, UConvaiChatbotComponent, OnCharacterDataLoadEvent_V2, UConvaiChatbotComponent*, ChatbotComponent, bool, Success);
+
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FOnFailureSignature, UConvaiChatbotComponent, OnFailureEvent);
 // TODO (Mohamed): Manage onDestroy/onEndPlay - should end any on-going streams
 
@@ -36,7 +45,7 @@ public:
 	* Returns true, if the character is being talked to, is talking, or is processing the response.
 	*/
 	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Convai")
-		bool IsInConversation();
+	bool IsInConversation();
 
 	/**
 	* Returns true, if the character is still processing and has not received the full response yet.
@@ -54,28 +63,34 @@ public:
 	* Returns true, if the character is currently talking.
 	*/
 	UFUNCTION(BlueprintPure, BlueprintCallable, Category = "Convai", meta = (DisplayName = "Is Talking"))
-		bool GetIsTalking();
+	bool GetIsTalking();
 
 	UPROPERTY(EditAnywhere, Category = "Convai", Replicated, BlueprintSetter = LoadCharacter)
 	FString CharacterID;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Convai", Replicated)
-		FString CharacterName;
+	UPROPERTY(BlueprintReadOnly, Category = "Convai", Replicated)
+	FString CharacterName;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Convai", Replicated)
-		FString VoiceType;
+	UPROPERTY(BlueprintReadOnly, Category = "Convai", Replicated)
+	FString VoiceType;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Convai", Replicated)
-		FString Backstory;
+	UPROPERTY(BlueprintReadOnly, Category = "Convai", Replicated)
+	FString Backstory;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Convai", Replicated)
+	UPROPERTY(BlueprintReadOnly, Category = "Convai", Replicated)
 	FString LanguageCode;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Convai", Replicated)
+	UPROPERTY(BlueprintReadOnly, Category = "Convai", Replicated)
 	FString ReadyPlayerMeLink;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Convai", Replicated)
+	UPROPERTY(BlueprintReadOnly, Category = "Convai", Replicated)
 	FString AvatarImageLink;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Convai", Replicated, meta = (DisplayName = "Interacting Player"))
+	UConvaiPlayerComponent* CurrentConvaiPlayerComponent;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Convai|Actions", Replicated)
+	TArray<FConvaiResultAction> ActionsQueue;
 
 	/**
 	 *    Used to track memory of a previous conversation, set to -1 means no previous conversation,
@@ -83,13 +98,13 @@ public:
 	 *    conversation and then set it back later on to resume a conversation
 	 */
 	UPROPERTY(BlueprintReadWrite, Category = "Convai", Replicated)
-		FString SessionID = "-1";
+	FString SessionID = "-1";
 
 	/**
 	 *    Contains all relevant objects and characters in the scene including the (Player), and also all the actions doable by the character
 	 */
 	UPROPERTY(BlueprintReadWrite, Category = "Convai")
-		UConvaiEnvironment* Environment;
+	UConvaiEnvironment* Environment;
 
 	/**
 	 *    Time in seconds, for the character's voice audio to gradually degrade until it is completely turned off when interrupted.
@@ -101,7 +116,7 @@ public:
 	 *    Reset the conversation with the character and remove previous memory, this is the same as setting the session ID property to -1.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Convai")
-		void ResetConversation();	
+	void ResetConversation();	
 	
 	/**
 	 *    Loads a new character using its ID
@@ -109,21 +124,101 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintInternalUseOnly, Category = "Convai")
 	void LoadCharacter(FString NewCharacterID);
 
+	/**
+	 * Appends a TArray of FConvaiResultAction items to the existing ActionsQueue.
+	 * If ActionsQueue is not empty, it takes the first element, appends the new array to it,
+	 * and then reassigns it back to ActionsQueue. If ActionsQueue is empty, it simply sets ActionsQueue to the new array.
+	 *
+	 * @param NewActions Array of FConvaiResultAction items to be appended.
+	 *
+	 * @category Convai
+	 */
+	 void AppendActionsToQueue(TArray<FConvaiResultAction> NewActions);
+
+	/**
+	 * Marks the current action as completed and handles post-execution logic.
+	 *
+	 * @param IsSuccessful A boolean flag indicating whether the executed action was successful or not. If true, the next action in the queue will be processed. If false, the current action will be retried.
+	 * @param Delay A float value representing the time in seconds to wait before attempting either the next action or retrying the current action, depending on the value of IsSuccessful.
+	 *
+	 * @note This function should be invoked after each action execution to manage the action queue.
+	 *
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Convai|Actions")
+	void HandleActionCompletion(bool IsSuccessful, float Delay);
+
+	/**
+	 * Checks if the ActionsQueue managed by the Convai chatbot component is empty.
+	 *
+	 * @return Returns true if the ActionsQueue is empty; otherwise, returns false.
+	 *
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Convai|Actions")
+	bool IsActionsQueueEmpty();
+
+	/**
+	 * Fetches the first action from the ActionsQueue managed by the Convai chatbot component.
+	 *
+	 * @param ConvaiResultAction Reference to a struct that will be populated with the details of the first action in the queue.
+	 *
+	 * @return Returns true if there is at least one action in the ActionsQueue and the struct has been successfully populated; otherwise, returns false.
+	 *
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Convai|Actions")
+	bool FetchFirstAction(FConvaiResultAction& ConvaiResultAction);
+
+	/**
+	 * Removes the first action from the ActionsQueue managed by the Convai chatbot component.
+	 *
+	 * @return Returns true if an action was successfully removed; otherwise, returns false.
+	 *
+	 */
+	bool DequeueAction();
+
+	/**
+	 * Starts executing the first action in the ActionsQueue by calling TriggerNamedBlueprintAction.
+	 *
+	 * @return Returns true if the first action was successfully started; otherwise, returns false.
+	 *
+	 */
+	UFUNCTION()
+	bool StartFirstAction();
+
+	/**
+	 * Triggers a specified Blueprint event or function on the owning actor based on the given action name and parameters.
+	 *
+	 * @param ActionName The name of the Blueprint event or function to trigger. This event or function should exist in the Blueprint that owns this component.
+	 * @param ConvaiActionStruct A struct containing additional data or parameters to pass to the Blueprint event or function.
+	 *
+	 * @note The function attempts to dynamically find and call a Blueprint event or function in the owning actor's class. If the Blueprint event or function does not exist or if the signature doesn't match, the function will log a warning.
+	 *
+	 */
+	bool TriggerNamedBlueprintAction(const FString& ActionName, FConvaiResultAction ConvaiActionStruct);
+
+
 public:
 	/** Called when a new action is received from the API */
+	UPROPERTY(BlueprintAssignable, Category = "Convai", meta = (DisplayName = "_DEPRECATED On Actions Received"))
+	FOnActionReceivedSignature_Deprecated OnActionReceivedEvent;
 	UPROPERTY(BlueprintAssignable, Category = "Convai", meta = (DisplayName = "On Actions Received"))
-	FOnActionReceivedSignature OnActionReceivedEvent;
+	FOnActionReceivedSignature_V2 OnActionReceivedEvent_V2;
 
 	/** Called when new text is received from the API, AudioDuration = 0 if no audio was received */
+	UPROPERTY(BlueprintAssignable, Category = "Convai", meta = (DisplayName = "_DEPRECATED On Text Received"))
+	FOnTextReceivedSignature_Deprecated OnTextReceivedEvent;
 	UPROPERTY(BlueprintAssignable, Category = "Convai", meta = (DisplayName = "On Text Received"))
-	FOnTextReceivedSignature OnTextReceivedEvent;
+	FOnTextReceivedSignature_V2 OnTextReceivedEvent_V2;
 
 	/** Called when new transcription is available */
+	UPROPERTY(BlueprintAssignable, Category = "Convai", meta = (DisplayName = "_DEPRECATED On Transcription Received"))
+	FOnTranscriptionReceivedSignature_Deprecated OnTranscriptionReceivedEvent;
 	UPROPERTY(BlueprintAssignable, Category = "Convai", meta = (DisplayName = "On Transcription Received"))
-	FOnTranscriptionReceivedSignature OnTranscriptionReceivedEvent;
+	FOnTranscriptionReceivedSignature_V2 OnTranscriptionReceivedEvent_V2;
 
+	UPROPERTY(BlueprintAssignable, Category = "Convai", meta = (DisplayName = "_DEPRECATED On Character Data Loaded"))
+	FOnCharacterDataLoadSignature_Deprecated OnCharacterDataLoadEvent;
 	UPROPERTY(BlueprintAssignable, Category = "Convai", meta = (DisplayName = "On Character Data Loaded"))
-	FOnCharacterDataLoadSignature OnCharacterDataLoadEvent;
+	FOnCharacterDataLoadSignature_V2 OnCharacterDataLoadEvent_V2;
 
 	/** Called there is an error */
 	UPROPERTY(BlueprintAssignable, Category = "Convai", meta = (DisplayName = "On Failure"))
@@ -131,18 +226,26 @@ public:
 
 public:
 	//UFUNCTION(BlueprintCallable, DisplayName = "Begin Transmission")
-	void StartGetResponseStream(UConvaiPlayerComponent* InConvaiPlayerComponent, FString InputText, UConvaiEnvironment* InEnvironment, bool InGenerateActions, bool VoiceResponse, bool RunOnServer, uint32 InToken);
+	void StartGetResponseStream(UConvaiPlayerComponent* InConvaiPlayerComponent, FString InputText, UConvaiEnvironment* InEnvironment, bool InGenerateActions, bool InVoiceResponse, bool RunOnServer, bool UseOverrideAPI_Key, FString OverrideAPI_Key, uint32 InToken);
 
+	// Interrupts the current speech with a provided fade-out duration. 
+	// The fade-out duration is controlled by the parameter 'InVoiceFadeOutDuration'.
 	UFUNCTION(BlueprintCallable, Category = "Convai")
 	void InterruptSpeech(float InVoiceFadeOutDuration);
 
+	// Broadcasts an interruption of the current speech across a network, with a provided fade-out duration.
+	// This function ensures that the interruption is communicated reliably to all connected clients.
+	// The fade-out duration is controlled by the parameter 'InVoiceFadeOutDuration'.
+	UFUNCTION(NetMulticast, Reliable, Category = "VoiceNetworking")
+	void Broadcast_InterruptSpeech(float InVoiceFadeOutDuration);
+
 private:
-	// UActorComponent interface
+	// AActorComponent interface
 	virtual void BeginPlay() override;
 	//virtual void OnRegister() override;
 	//virtual void OnUnregister() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	// End UActorComponent interface
+	// End AActorComponent interface
 
 	//~ Begin UObject Interface.
 	virtual void BeginDestroy() override;
@@ -155,7 +258,6 @@ private:
 
 	UFUNCTION()
 	void OnConvaiGetDetailsCompleted(FString ReceivedCharacterName, FString ReceivedVoiceType, FString ReceivedBackstory, FString ReceivedLanguageCode, bool HasReadyPlayerMeLink, FString ReceivedReadyPlayerMeLink, FString ReceivedAvatarImageLink);
-
 
 private:
 	// Used when both the voice component ring buffer is empty and we have already sent all the current audio data over the stream
@@ -170,7 +272,7 @@ private:
 	void ClearTimeOutTimer();
 
 private:
-	void Start_GRPC_Request();
+	void Start_GRPC_Request(bool UseOverrideAPI_Key, FString OverrideAPI_Key);
 
 	void Bind_GRPC_Request_Delegates();
 
@@ -179,8 +281,17 @@ private:
 	void Cleanup(bool StreamConnectionFinished = false);
 
 private:
+	UFUNCTION(NetMulticast, Reliable, Category = "Convai")
+	void Broadcast_OnTranscriptionReceived(const FString& Transcription, bool IsTranscriptionReady, bool IsFinal);
+	UFUNCTION(NetMulticast, Reliable, Category = "Convai")
+	void Broadcast_onResponseDataReceived(const FString& ReceivedText, bool IsFinal);
+	UFUNCTION(NetMulticast, Reliable, Category = "Convai")
+	void Broadcast_onSessionIDReceived(const FString& ReceivedSessionID);
+	UFUNCTION(NetMulticast, Reliable, Category = "Convai")
+	void Broadcast_onActionSequenceReceived(const TArray<FConvaiResultAction>& ReceivedSequenceOfActions);
+
 	void OnTranscriptionReceived(FString Transcription, bool IsTranscriptionReady, bool IsFinal);
-	void onResponseDataReceived(FString ReceivedText, const TArray<uint8>& ReceivedAudio, uint32 SampleRate, bool IsFinal);
+	void onResponseDataReceived(const FString ReceivedText, const TArray<uint8>& ReceivedAudio, TArray<FAnimationFrame> FaceData, uint32 SampleRate, bool IsFinal);
 	void onSessionIDReceived(FString ReceivedSessionID);
 	void onActionSequenceReceived(const TArray<FConvaiResultAction>& ReceivedSequenceOfActions);
 	void onFinishedReceivingData();
@@ -192,9 +303,6 @@ private:
 
 	UPROPERTY()
 	UConvaiGRPCGetResponseProxy* ConvaiGRPCGetResponseProxy;
-
-	UPROPERTY()
-	UConvaiPlayerComponent* CurrentConvaiPlayerComponent;
 
 	bool GenerateActions; // Should we generate actions
 	bool TextInput; // Whether  to use text or audio as input to the API
