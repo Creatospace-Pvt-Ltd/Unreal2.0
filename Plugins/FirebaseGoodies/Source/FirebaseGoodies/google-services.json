@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "554953879948",
+    "project_id": "creatospace-5fa9d",
+    "storage_bucket": "creatospace-5fa9d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:554953879948:android:c804fe254d55c80526e6a9",
+        "android_client_info": {
+          "package_name": "com.metaverse.creatospace"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSGzAtlRtUYlVbzKIscP2UW4oFAM5p_Eg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,27 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.5",
+	"FriendlyName": "File Picker UI Dialog",
+	"Description": "Enables you to select files through the UI from the File System during runtime on Android, Windows, VR and more.",
+	"Category": "Other",
+	"CreatedBy": "FBAM.Studio",
+	"CreatedByURL": "https://fbam.studio",
+	"DocsURL": "https://drive.google.com/file/d/14tC1DkjLcbB2ykjBDPEfkBWHGtsWAP1N/view",
+	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/b571608244b449b784bebc35bd682190",
+	"SupportURL": "https://fbam.studio/contact/",
+	"EngineVersion": "5.0.0",
+	"CanContainContent": true,
+	"Installed": true,
+	"Modules": [
+		{
+			"Name": "FilePicker",
+			"Type": "Runtime",
+			"LoadingPhase": "PreLoadingScreen",
+			"PlatformAllowList": [
+				"Win64",
+				"Android"
+			]
+		}
+	]
+}

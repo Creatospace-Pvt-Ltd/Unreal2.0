@@ -1,0 +1,48 @@
+﻿// Copyright (c) 2023 Nineva Studios
+
+#pragma once
+
+#if (PLATFORM_WINDOWS || PLATFORM_MAC) && FG_ENABLE_EDITOR_SUPPORT
+
+#include "CloudStorage/Interface/ICloudStorage.h"
+
+class CloudStorageDesktop : public ICloudStorage
+{
+public:
+	virtual ~CloudStorageDesktop() override;
+	
+	virtual void UploadFromDataInMemory(const TArray<uint8>& FileInMemory, const FString& FileStoragePath,
+										const FCloudStorageIntDelegate& OnUploadFromDataInMemoryProgress,
+										const FCloudStorageVoidDelegate& OnSuccess,
+										const FCloudStorageStringDelegate& OnError) override;
+	
+	virtual void UploadFromLocalFile(const FString& LocalFilePath, const FString& FileStoragePath,
+										const FCloudStorageIntDelegate& OnUploadProgress,
+										const FCloudStorageVoidDelegate& OnSuccess,
+										const FCloudStorageStringDelegate& OnError) override;
+	
+	virtual void GetDownloadUrl(const FString& FileStoragePath, const FCloudStorageStringDelegate& OnSuccess,
+										const FCloudStorageStringDelegate& OnError) override;
+	
+	virtual void DownloadToLocalFile(const FString& FileStoragePath, const FString& LocalFileName,
+										EAndroidStorageLocation Destination,
+										const FCloudStorageStringDelegate& OnSuccess,
+										const FCloudStorageStringDelegate& OnError,
+										const FCloudStorageIntDelegate& OnProgress) override;
+	
+	virtual void DeleteFile(const FString& FileStoragePath, const FCloudStorageVoidDelegate& OnSuccess,
+										const FCloudStorageStringDelegate& OnError) override;
+	
+	virtual void DownloadInMemory(const FString& FileStoragePath, int64 FileSizeLimit,
+										const FCloudStorageByteArrayDelegate& OnSuccess,
+										const FCloudStorageStringDelegate& OnError) override;
+	
+	virtual void GetFileMetadata(const FString& FileStoragePath, const FCloudStorageMetadataDelegate& OnSuccess,
+										const FCloudStorageStringDelegate& OnError) override;
+	
+	virtual void UpdateFileMetadata(const FString& FileStoragePath, UFGStorageMetadataValues* NewMetadataValues,
+										const FCloudStorageMetadataDelegate& OnSuccess,
+										const FCloudStorageStringDelegate& OnError) override;
+};
+
+#endif
