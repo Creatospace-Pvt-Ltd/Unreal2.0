@@ -94,6 +94,33 @@ public:
 	static void MakeAHttpRequest(const EMethod Method, const FString URL, const TMap<FString, FString> Params, const TMap<FString, FString> Headers, const FString Body, const FResponse &OnComplete);
 
 	/**
+	 *	Send HTTP Request with files
+	 .
+	 *
+	 *	@param Method The request Verb, GET, PUSH, POST, DELETE, etc.
+	 *	@param URL
+	 *	@param Params Query params, ?param1=...&param2=...
+	 *	@param Headers Request Headers
+	 *	@param Body Content for the request
+	 *	@param OnComplete Callback
+	 *
+	 *	@author King Wai Mark
+	 */
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Make a HTTP Request With File", Keywords = "Make a HTTP Request"), Category = "HTTP Requests For Blueprint Plugin")
+	static void MakeAHttpRequestwithFile(const EMethod Method, const FString URL, const TMap<FString, FString> Params, const TMap<FString, FString> Headers, const FString Body, const FString FieldName, const FString FilePath, const FResponse& OnComplete);
+
+
+	/**
+	 *	Converts the Response String from the Make a HTTP Request callback into a JSON Object that can be used in a blueprint.
+	 *
+	 *	@param ResponseString The response string returned from Make a HTTP Request
+	 *
+	 *	@author King Wai Mark
+	 */
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "To ByteArray", Keywords = "File to byte array"), Category = "HTTP Requests For Blueprint Plugin")
+	static UPARAM(DisplayName = "Temp File Path") FString FileToByteArray(const FString FilePath);
+
+	/**
 	 *	Converts the Response String from the Make a HTTP Request callback into a JSON Object that can be used in a blueprint.
 	 *
 	 *	@param ResponseString The response string returned from Make a HTTP Request

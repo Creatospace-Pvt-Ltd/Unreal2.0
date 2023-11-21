@@ -2,6 +2,7 @@
 
 
 #include "HTTPRequestClient.h"
+#include <tchar.h>
 
 
 int UHTTPRequestClient::RequestTimeoutDuration = 60;
@@ -109,6 +110,146 @@ void UHTTPRequestClient::MakeAHttpRequest(const EMethod Method, const FString UR
 	HttpRequest->ProcessRequest();
 }
 
+void UHTTPRequestClient::MakeAHttpRequestwithFile(const EMethod Method, const FString URL, const TMap<FString, FString> Params, const TMap<FString, FString> Headers, const FString Body, const FString FieldName, const FString FilePath, const FResponse& OnComplete)
+{
+
+
+	FHttpModule& HttpModule = FHttpModule::Get();
+
+	// 1. Create Request Object
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequest = HttpModule.CreateRequest();
+	// 2. Set the request method. E.g. GET, POST, PUSH, etc.
+	const FString RequestMethod = UHTTPRequestClient::MethodToString(Method);
+	if (RequestMethod.Len() <= 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Request method not set."));
+		return;
+	}
+	HttpRequest->SetVerb(RequestMethod);
+
+
+	// 3. Set the url.
+	if (URL.Len() <= 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("The URL for the request cannot be empty."));
+		return;
+	};
+	FString FullUrl = URL;
+	// 3.a Add the query parameters using the Param map.
+	int ParamIndex = 0;
+	for (auto Param : Params)
+	{
+		if (ParamIndex == 0) FullUrl = FullUrl + "?";
+		else FullUrl = FullUrl + "&";
+		FullUrl = FullUrl + Param.Key + "=" + Param.Value;
+		ParamIndex = ParamIndex + 1;
+	}
+	HttpRequest->SetURL(FullUrl);
+
+	// 4. Set the request headers
+	for (auto Header : Headers)
+	{
+		HttpRequest->AppendToHeader(Header.Key, Header.Value);
+	}
+
+	// 5. Add body to the request.
+	HttpRequest->SetContentAsString(Body);
+
+	// Add the file into the request (From Unreal forum's answer)
+
+	// TexturePath contains the local file full path
+
+	// file name
+	int32 LastSlashPos;
+	FilePath.FindLastChar('/', LastSlashPos);
+	FString FileName = FilePath.RightChop(LastSlashPos + 1);
+
+	// get data
+	TArray<uint8> UpFileRawData;
+	FFileHelper::LoadFileToArray(UpFileRawData, *FilePath);
+
+	// prepare json data
+	FString JsonString;
+	TSharedRef<TJsonWriter<TCHAR>> JsonWriter = TJsonWriterFactory<TCHAR>::Create(&JsonString);
+	FString FileString;
+	TSharedRef<TJsonWriter<TCHAR>> FileWriter = TJsonWriterFactory<TCHAR>::Create(&FileString);
+
+	JsonWriter->WriteObjectStart();
+	JsonWriter->WriteValue("path", FilePath);
+	JsonWriter->WriteValue("fieldname", FieldName);
+	JsonWriter->WriteValue("imgData", UpFileRawData);
+	JsonWriter->WriteValue("originalname", FileName);
+	JsonWriter->WriteObjectEnd();
+	JsonWriter->Close();
+	
+	FileWriter->WriteObjectStart();
+	FileWriter->WriteValue("file", JsonString);
+	FileWriter->WriteObjectEnd();
+	FileWriter->Close();
+
+	// the json request
+	// TSharedRef<IHttpRequest> SendJsonRequest = (&FHttpModule::Get())->CreateRequest();
+	// SendJsonRequest->OnProcessRequestComplete().BindRaw(this, &SYagOpenFileWidget::HttpUploadYagFileComplete);
+	// SendJsonRequest->SetURL("http://myserver/MyJsonHandlingPhpScript.php");
+	// SendJsonRequest->SetVerb("POST");
+	HttpRequest->SetContentAsString(FileString);
+	
+	
+	// SendJsonRequest->ProcessRequest();
+
+
+	// 6. Attach the callback to notify us that the process is completed.
+	HttpRequest->OnProcessRequestComplete().BindLambda(
+		// Here, we "capture" the 'this' pointer (the "&"), so our lambda can call this
+		// class's methods in the callback.
+		[&, OnComplete](
+			FHttpRequestPtr Req,
+			FHttpResponsePtr Res,
+			bool ConnectedSuccessfully) mutable {
+				OnComplete.ExecuteIfBound(Res->GetResponseCode(), Res->GetContentAsString());
+				UE_LOG(LogTemp, Error, TEXT("HTTP\n %s"), *Res->GetContentAsString());
+		});
+
+	// 7. Set Settings
+	HttpRequest->SetTimeout(UHTTPRequestClient::RequestTimeoutDuration);
+
+	// 8. Submit the request for processing
+	HttpRequest->ProcessRequest();
+}
+
+FString UHTTPRequestClient::FileToByteArray(const FString FilePath)
+{
+	TArray<uint8> UpFileRawData;
+	FFileHelper::LoadFileToArray(UpFileRawData, *FilePath);
+	// file name
+	int32 LastSlashPos;
+	FilePath.FindLastChar('/', LastSlashPos);
+	const FString FileName = FilePath.RightChop(LastSlashPos + 1);
+	int32 ExtPos;
+	FileName.FindLastChar('.', ExtPos);
+	const FString FileNameExact = FileName.LeftChop(FileName.Len() - 4);
+	
+	UE_LOG(LogTemp, Error, TEXT("Final File Name"), *FileNameExact);
+	FString tempfile;
+
+	const TCHAR* TempName = *FileNameExact;
+	IFileManager &filemang = IFileManager::Get();
+
+	bool filestatus = FFileHelper::SaveArrayToFile(UpFileRawData, TempName, &filemang, EFileWrite::FILEWRITE_AllowRead);
+
+	
+	
+
+	if (filestatus) {
+		tempfile = filemang.GetFilenameOnDisk(TempName);
+		UE_LOG(LogTemp, Error, TEXT("File Created!"));
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("File Couldn't be Created!"));
+	}
+
+	return tempfile;
+}
 
 FJSONObject UHTTPRequestClient::ResponseStringToJSON(const FString ResponseString)
 {
