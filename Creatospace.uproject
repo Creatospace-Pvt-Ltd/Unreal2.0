@@ -190,11 +190,6 @@
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/b571608244b449b784bebc35bd682190"
 		},
 		{
-			"Name": "FirebaseGoodies",
-			"Enabled": true,
-			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/a972a30efb2747ce98fce6b92cc35377"
-		},
-		{
 			"Name": "AndroidFileServer",
 			"Enabled": false
 		}
