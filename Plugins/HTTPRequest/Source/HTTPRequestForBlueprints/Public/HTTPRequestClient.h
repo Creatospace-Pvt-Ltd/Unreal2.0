@@ -238,6 +238,9 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Get Timeout Duration", Keywords = "Get Timeout Duration"), Category = "HTTP Requests For Blueprint Plugin")
 	static int GetTimeoutDuration();
 
-	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToString (JsonObject)", CompactNodeTitle = "ShafiqJsonToString", BlueprintAutocast, NativeBreakFunc), Category = "Json|Convert")
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToStringShafiq (JsonObject)", CompactNodeTitle = "ShafiqJsonToString", BlueprintAutocast, NativeBreakFunc), Category = "Json|Convert")
 	static FString Conv_JsonObjectToString(const FJSONObject& JSON);
+
+	UFUNCTION(BlueprintPure, meta = (DisplayName = "ToJsonObjectShafiq (String)", CompactNodeTitle = "ShafiqStringToJson"), Category = "Json|Convert")
+	static FJSONObject Conv_StringToJsonObject(const FString& JsonString);
 };

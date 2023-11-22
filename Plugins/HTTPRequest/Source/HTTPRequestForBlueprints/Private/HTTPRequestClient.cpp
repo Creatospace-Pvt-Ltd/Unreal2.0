@@ -388,3 +388,11 @@ FString UHTTPRequestClient::Conv_JsonObjectToString(const FJSONObject& JSON)
 	}
 	return Result;
 }
+
+FJSONObject UHTTPRequestClient::Conv_StringToJsonObject(const FString& JsonString)
+{
+	FJSONObject Object;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonString);
+	FJsonSerializer::Deserialize(Reader, Object.JsonParsed);
+	return Object;
+}
