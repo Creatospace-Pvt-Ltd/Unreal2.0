@@ -377,3 +377,14 @@ int UHTTPRequestClient::GetTimeoutDuration()
 {
 	return UHTTPRequestClient::RequestTimeoutDuration;
 }
+
+FString UHTTPRequestClient::Conv_JsonObjectToString(const FJSONObject& JSON)
+{
+	FString Result;
+	if (JSON.JsonParsed.IsValid())
+	{
+		TSharedRef<TJsonWriter<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>> JsonWriter = TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&Result, 0);
+		FJsonSerializer::Serialize(JSON.JsonParsed.ToSharedRef(), JsonWriter);
+	}
+	return Result;
+}
