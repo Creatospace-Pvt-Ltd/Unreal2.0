@@ -14,7 +14,7 @@ enum class EAvatarPose : uint8
 };
 
 UENUM(BlueprintType)
-enum class EAvatarMeshLod : uint8
+enum class EAvatarLod : uint8
 {
 	High UMETA(DisplayName = "High (0)"),
 	Medium UMETA(DisplayName = "Medium (1)"),
@@ -60,7 +60,7 @@ class READYPLAYERME_API UReadyPlayerMeAvatarConfig : public UDataAsset
 public:
 	/** Mesh Level of detail. The avatar with high LOD is detailed, but at the same time heavier to load. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ready Player Me")
-	EAvatarMeshLod MeshLod = EAvatarMeshLod::High;
+	EAvatarLod Lod = EAvatarLod::High;
 
 	/** Avatar Pose. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ready Player Me")
@@ -87,6 +87,16 @@ public:
 	/** If set to true the hands of the avatars will be included. This property applies only to the half-body avatars. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ready Player Me")
 	bool bUseHands = true;
+
+	/**
+	 * If set to true the avatar will be compressed with the Mesh-Opt compression.
+	 * Mesh-Opt compression will effectively reduce the size of the avatar by compressing the mesh geometry.
+	 *
+	 * @note Currently Mesh-Opt compression only works when the `TextureAtlas` property is set.
+	 * @note Mesh-Opt compression should not be used along with the Draco compression.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ready Player Me")
+	bool bUseMeshOptCompression = false;
 
 	/**
 	 * If set to true the avatar will be compressed with the Draco mesh compression.

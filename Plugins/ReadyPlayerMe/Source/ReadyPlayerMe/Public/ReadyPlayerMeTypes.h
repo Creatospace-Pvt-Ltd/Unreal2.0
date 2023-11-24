@@ -31,16 +31,15 @@ struct FAvatarMetadata
 	EAvatarGender OutfitGender;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ReadyPlayerMe")
-	int32 OutfitVersion;
+	FString SkinTone;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ReadyPlayerMe")
-	FString LastModifiedDate;
+	FString UpdatedAtDate;
 
 	FAvatarMetadata()
 	{
 		BodyType = EAvatarBodyType::Undefined;
 		OutfitGender = EAvatarGender::Undefined;
-		OutfitVersion = 1;
 	}
 };
 

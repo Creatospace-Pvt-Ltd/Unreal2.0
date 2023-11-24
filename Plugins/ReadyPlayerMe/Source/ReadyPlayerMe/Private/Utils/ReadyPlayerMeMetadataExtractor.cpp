@@ -15,10 +15,10 @@ static const FString GENDER_FEMININE = "Feminine";
 static const FString GENDER_MASCULINE = "Masculine";
 static const FString TYPE_FULLBODY = "Fullbody";
 static const FString TYPE_HALFBODY = "Halfbody";
-static const FString JSON_FIELD_OUTFIT = "outfitVersion";
+static const FString JSON_FIELD_SKIN_TONE = "skinTone";
 static const FString JSON_FIELD_BODY = "bodyType";
 static const FString JSON_FIELD_GENDER = "outfitGender";
-static const FString JSON_FIELD_MODIFIED_DATE = "lastModifiedDate";
+static const FString JSON_FIELD_UPDATED_AT = "updatedAt";
 static const int MAX_HALFBODY_NODES=60;
 
 FString FReadyPlayerMeMetadataExtractor::GetRootBoneName(const EAvatarBodyType& AvatarBodyType)
@@ -43,24 +43,6 @@ EAvatarBodyType FReadyPlayerMeMetadataExtractor::GetBodyTypeFromAsset(UglTFRunti
 	return EAvatarBodyType::HalfBody;
 }
 
-FString FReadyPlayerMeMetadataExtractor::AddModifiedDateToMetadataJson(const FString& JsonString, const FString& LastModifiedDate)
-{
-	FString OutputJsonString;
-	TSharedPtr<FJsonObject> JsonObject;
-	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonString);
-	if (FJsonSerializer::Deserialize(Reader, JsonObject))
-	{
-		JsonObject->SetStringField(JSON_FIELD_MODIFIED_DATE, LastModifiedDate);
-
-		const auto Writer = TJsonWriterFactory<>::Create(&OutputJsonString);
-		if (!FJsonSerializer::Serialize(JsonObject.ToSharedRef(), Writer))
-		{
-			UE_LOG(LogReadyPlayerMe, Warning, TEXT("Failed to create a valid url"));
-		}
-	}
-	return OutputJsonString;
-}
-
 FAvatarMetadata FReadyPlayerMeMetadataExtractor::ExtractAvatarMetadata(const FString& JsonString)
 {
 	TSharedPtr<FJsonObject> JsonObject;
@@ -70,9 +52,9 @@ FAvatarMetadata FReadyPlayerMeMetadataExtractor::ExtractAvatarMetadata(const FSt
 
 	if (FJsonSerializer::Deserialize(Reader, JsonObject))
 	{
-		if (JsonObject->HasField(JSON_FIELD_MODIFIED_DATE))
+		if (JsonObject->HasField(JSON_FIELD_UPDATED_AT))
 		{
-			Metadata.LastModifiedDate = JsonObject->GetStringField(JSON_FIELD_MODIFIED_DATE);
+			Metadata.UpdatedAtDate = JsonObject->GetStringField(JSON_FIELD_UPDATED_AT);
 		}
 		if (JsonObject->HasField(JSON_FIELD_BODY))
 		{
@@ -86,9 +68,9 @@ FAvatarMetadata FReadyPlayerMeMetadataExtractor::ExtractAvatarMetadata(const FSt
 				Metadata.BodyType = EAvatarBodyType::FullBody;
 			}
 		}
-		if (JsonObject->HasField(JSON_FIELD_OUTFIT))
+		if (JsonObject->HasField(JSON_FIELD_SKIN_TONE))
 		{
-			Metadata.OutfitVersion = JsonObject->GetIntegerField(JSON_FIELD_OUTFIT);
+			Metadata.SkinTone = JsonObject->GetStringField(JSON_FIELD_SKIN_TONE);
 		}
 		if (JsonObject->HasField(JSON_FIELD_GENDER))
 		{

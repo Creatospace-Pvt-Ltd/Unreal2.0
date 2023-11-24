@@ -2,7 +2,6 @@
 
 
 #include "HTTPRequestClient.h"
-#include <tchar.h>
 
 
 int UHTTPRequestClient::RequestTimeoutDuration = 60;
