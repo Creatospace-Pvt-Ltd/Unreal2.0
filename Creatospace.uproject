@@ -31,7 +31,7 @@
 		},
 		{
 			"Name": "MongoDBDriver",
-			"Enabled": true,
+			"Enabled": false,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/f43012495aac4e18b8630ec6fa949d02"
 		},
 		{
@@ -107,7 +107,7 @@
 		},
 		{
 			"Name": "RigLogic",
-			"Enabled": true
+			"Enabled": false
 		},
 		{
 			"Name": "LiveLink",
@@ -128,10 +128,6 @@
 		},
 		{
 			"Name": "Water",
-			"Enabled": true
-		},
-		{
-			"Name": "ConvaiOVRLipSync",
 			"Enabled": true
 		},
 		{
@@ -200,6 +196,11 @@
 		{
 			"Name": "RpmAvatarCreator",
 			"Enabled": true
+		},
+		{
+			"Name": "AwsS3",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/828b50772aed411d8cf54933827b9c6a"
 		}
 	]
 }

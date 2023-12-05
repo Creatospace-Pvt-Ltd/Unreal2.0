@@ -175,8 +175,8 @@ void UHTTPRequestClient::MakeAHttpRequestwithFile(const EMethod Method, const FS
 
 	JsonWriter->WriteObjectStart();
 	JsonWriter->WriteValue("path", FilePath);
-	JsonWriter->WriteValue("fieldname", FieldName);
-	JsonWriter->WriteValue("imgData", UpFileRawData);
+	JsonWriter->WriteValue("mimetype", FieldName);
+	// JsonWriter->WriteValue("imgData", UpFileRawData);
 	JsonWriter->WriteValue("originalname", FileName);
 	JsonWriter->WriteObjectEnd();
 	JsonWriter->Close();
@@ -192,7 +192,8 @@ void UHTTPRequestClient::MakeAHttpRequestwithFile(const EMethod Method, const FS
 	// SendJsonRequest->SetURL("http://myserver/MyJsonHandlingPhpScript.php");
 	// SendJsonRequest->SetVerb("POST");
 	HttpRequest->SetContentAsString(FileString);
-	
+
+	//HttpRequest->SetContentAsStreamedFile(FilePath);
 	
 	// SendJsonRequest->ProcessRequest();
 

@@ -8,7 +8,7 @@
 
 
 UENUM(BlueprintType)
-enum class EJsonType : uint8
+enum class EBPJsonType : uint8
 {
 	None,
 	Null,
@@ -92,7 +92,7 @@ public:
 	 * @return true if the field exists, false otherwise.
 	 */
 	UFUNCTION(BlueprintPure, Category = "Json")
-	static bool JsonHasTypedField(const FBlueprintJsonObject& JsonObject, const FString& FieldName, EJsonType Type);
+	static bool JsonHasTypedField(const FBlueprintJsonObject& JsonObject, const FString& FieldName, EBPJsonType Type);
 
 	/**
 	 * Removes the field with the specified name.
@@ -205,7 +205,7 @@ public:
 
 	/** Return the type of json value */
 	UFUNCTION(BlueprintPure, Category = "Json|Value")
-	static EJsonType JsonType(const FBlueprintJsonValue& JsonValue);
+	static EBPJsonType JsonType(const FBlueprintJsonValue& JsonValue);
 
 	/** Return true if the json value is null, false otherwise */
 	UFUNCTION(BlueprintPure, Category = "Json|Value")

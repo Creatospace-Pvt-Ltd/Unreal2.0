@@ -36,7 +36,7 @@ bool UBlueprintJsonLibrary::JsonHasField(const FBlueprintJsonObject& JsonObject,
 	return false;
 }
 
-bool UBlueprintJsonLibrary::JsonHasTypedField(const FBlueprintJsonObject& JsonObject, const FString& FieldName, EJsonType Type)
+bool UBlueprintJsonLibrary::JsonHasTypedField(const FBlueprintJsonObject& JsonObject, const FString& FieldName, EBPJsonType Type)
 {
 	if (JsonObject.Object.IsValid())
 	{
@@ -163,13 +163,13 @@ FBlueprintJsonValue UBlueprintJsonLibrary::JsonMakeNull()
 	return Value;
 }
 
-EJsonType UBlueprintJsonLibrary::JsonType(const FBlueprintJsonValue& JsonValue)
+EBPJsonType UBlueprintJsonLibrary::JsonType(const FBlueprintJsonValue& JsonValue)
 {
 	if (JsonValue.Value.IsValid())
 	{
-		return (EJsonType)JsonValue.Value->Type;
+		return (EBPJsonType)JsonValue.Value->Type;
 	}
-	return EJsonType::None;
+	return EBPJsonType::None;
 }
 
 bool UBlueprintJsonLibrary::JsonIsNull(const FBlueprintJsonValue& JsonValue)
