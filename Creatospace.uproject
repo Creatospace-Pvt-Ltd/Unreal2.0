@@ -110,28 +110,11 @@
 			"Enabled": false
 		},
 		{
-			"Name": "LiveLink",
-			"Enabled": true
-		},
-		{
 			"Name": "LiveLinkControlRig",
 			"Enabled": true
 		},
 		{
-			"Name": "AppleARKitFaceSupport",
-			"Enabled": true,
-			"SupportedTargetPlatforms": [
-				"IOS",
-				"Win64",
-				"Mac"
-			]
-		},
-		{
 			"Name": "Water",
-			"Enabled": true
-		},
-		{
-			"Name": "AlembicHairImporter",
 			"Enabled": true
 		},
 		{
@@ -201,6 +184,25 @@
 			"Name": "AwsS3",
 			"Enabled": true,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/828b50772aed411d8cf54933827b9c6a"
+		},
+		{
+			"Name": "AlembicHairImporter",
+			"Enabled": true
+		},
+		{
+			"Name": "AndroidPlayBilling",
+			"Enabled": false,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/ad0040f7dbbc45cebdcbc4b2c5982904"
+		},
+		{
+			"Name": "GooglePlayBilling",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/ee2aadf1b3f245949744c04343425630",
+			"SupportedTargetPlatforms": [
+				"Win64",
+				"Mac",
+				"Android"
+			]
 		}
 	]
 }

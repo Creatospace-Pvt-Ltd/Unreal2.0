@@ -33,6 +33,7 @@ Server
 PackagedClient 2.0
 PackagedServer 2.0
 PackagedStandalone
+WindowsShipClient
 .vscode
 .vs
 *.VC.db

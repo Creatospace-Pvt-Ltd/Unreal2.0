@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--Copyright Porret Gaming 2023, All Rights Reserved-->
+<!--Google Play Billing Additions-->
+<root xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:tools="http://schemas.android.com/tools">
+	<!--
+        Android and Gradle updates
+        This is the standard Gradle/Android configuration updates
+    -->
+
+    <!-- Initialisation -->
+	<init>
+		<log text="Google Play Events init"/>
+        <!-- Only function if google play services are enabled in Unreal Engine -->
+        <setBoolFromProperty result="bEnableGooglePlaySupport" ini="Engine" section="/Script/AndroidRuntimeSettings.AndroidRuntimeSettings" property="bEnableGooglePlaySupport" default="false"/>
+	</init>
+
+    <!-- Add dependencies -->
+	<androidManifestUpdates>
+		<addPermission android:name="android.permission.INTERNET" />
+		<addPermission android:name="com.android.vending.BILLING" />
+	</androidManifestUpdates>
+
+    <!-- Copy Custom Java Class -->
+    <gradleCopies>
+        <if condition="bEnableGooglePlaySupport">
+			<true>
+                <copyDir
+                    src="$S(PluginDir)/Android/"
+                    dst="$S(BuildDir)/gradle/app/src/main/java/com/porretgaming/googleplaybilling/" />
+            </true>
+		</if>
+	</gradleCopies>
+
+    <!-- Gradle additions -->
+    <buildGradleAdditions>
+		<insert>
+			android
+			{
+				compileOptions
+				{
+					targetCompatibility JavaVersion.VERSION_1_8
+					sourceCompatibility JavaVersion.VERSION_1_8
+				}
+			}
+		</insert>
+	</buildGradleAdditions>
+
+    <!-- Update use of old library in existing engine source code -->
+	<baseBuildGradleAdditions>
+		<insert>
+			allprojects
+			{
+
+                def mappings =
+				[
+					'constProduct.getSku()':	                            'constProduct.getSkus().get(0)',
+					'ownedProduct.getSku()':	                            'ownedProduct.getSkus().get(0)',
+					'purchase.getSku()':		                            'purchase.getSkus().get(0)',
+                    'BillingClient.FeatureType.IN_APP_ITEMS_ON_VR':         'BillingClient.FeatureType.IN_APP_MESSAGING',
+                    'flowParams.setVrPurchaseFlow(true);':                  'flowParams;',
+                    'flowParams.setVrPurchaseFlow(false);':                 'flowParams;',
+                    'Purchase.PurchasesResult purchasesResult':             '//Purchase.PurchasesResult purchasesResult',
+                    'responseCode = purchasesResult.getResponseCode();':    'responseCode = UndefinedFailureResponse;',
+                    'ownedItems = purchasesResult.getPurchasesList();':     'ownedItems = new ArrayList&lt;&gt;();',
+				]
+
+				beforeEvaluate { project ->
+					project.rootProject.projectDir.traverse(type: groovy.io.FileType.FILES, nameFilter: ~/.*\.java$/) { f ->
+						mappings.each { entry ->
+							if (f.getText('UTF-8').contains(entry.key)) {
+								println "Updating ${entry.key} to ${entry.value} in file ${f}"
+								ant.replace(file: f, token: entry.key, value: entry.value)
+							}
+						}
+					}
+				}
+			}
+		</insert>
+	</baseBuildGradleAdditions>
+
+    <!-- ProGuard additions -->
+	<proguardAdditions>
+		<if condition="bEnableGooglePlaySupport">
+			<true>
+                <insert>
+                    -dontwarn com.porretgaming.**
+                    -keep class com.porretgaming.** { *; }
+
+                    -dontwarn com.android.billingclient.**
+                    -keep class com.android.billingclient.** { *; }
+                    -keep interface com.android.billingclient.** { *; }
+                </insert>
+            </true>
+        </if>
+	</proguardAdditions>
+
+    <!-- Declare Dependencies -->
+    <buildGradleAdditions>
+        <if condition="bEnableGooglePlaySupport">
+			<true>
+                <insert>
+                dependencies {
+                    implementation 'com.android.billingclient:billing:6.0.1'
+                }
+                </insert>
+            </true>
+        </if>
+    </buildGradleAdditions>
+
+    <!-- Import Additions -->
+	<gameActivityImportAdditions>
+        <if condition="bEnableGooglePlaySupport">
+            <true>
+                <insert>
+                    import com.porretgaming.googleplaybilling.GooglePlayBilling;
+                </insert>
+            </true>
+        </if>
+	</gameActivityImportAdditions>
+
+    <!-- OnCreate Additions -->
+    <gameActivityOnCreateAdditions>
+		<if condition="bEnableGooglePlaySupport">
+			<true>
+                <insert>
+                    PlayBilling = new GooglePlayBilling(this);
+                </insert>
+            </true>
+        </if>
+    </gameActivityOnCreateAdditions>
+
+    <!-- OnDestroy Additions -->
+    <gameActivityOnDestroyAdditions>
+        <if condition="bEnableGooglePlaySupport">
+			<true>
+		        <insert>
+			        PlayBilling.OnDestroy();
+		        </insert>
+            </true>
+        </if>
+	</gameActivityOnDestroyAdditions>
+
+    	<!-- Class Aditions -->
+	<gameActivityClassAdditions>
+		<if condition="bEnableGooglePlaySupport">
+			<true>
+                <insert>
+                    private GooglePlayBilling PlayBilling;
+
+                    /*
+                        Public Methods
+                    */
+                    public void AndroidThunkJava_QueryProductDetails(String[] ProductIDs, String ProductType)
+                    {
+                        PlayBilling.QueryProductDetails(ProductIDs, ProductType);
+                    }
+
+                    public void AndroidThunkJava_LaunchBillingFlow(String productId, String productType, boolean isOfferPersonalised, String offerToken)
+                    {
+                        PlayBilling.LaunchBillingFlow(productId, productType, isOfferPersonalised, offerToken);
+                    }
+
+                    public void AndroidThunkJava_CheckForPurchases(String productType)
+                    {
+                        PlayBilling.CheckForPurchases(productType);
+                    }
+
+                    public void AndroidThunkJava_QueryPurchaseHistory(String productType)
+                    {
+                        PlayBilling.QueryPurchaseHistory(productType);
+                    }
+
+                    public boolean AndroidThunkJava_IsFeatureSupported(String featureType)
+                    {
+                        return PlayBilling.IsFeatureSupported(featureType);
+                    }
+
+                    public void AndroidThunkJava_ShowInAppMessages()
+                    {
+                        PlayBilling.ShowInAppMessages();
+                    }
+
+                    public boolean AndroidThunkJava_IsBillingReady()
+                    {
+                        return PlayBilling.IsBillingReady();
+                    }
+                    
+                </insert>
+            </true>
+            <false>
+                public void AndroidThunkJava_QueryProductDetails(String[] ProductIDs, String ProductType) {}
+                public void AndroidThunkJava_LaunchBillingFlow(String productId, String productType, boolean isOfferPersonalised, String offerToken) {}
+                public void AndroidThunkJava_CheckForPurchases(String productType) {}
+                public void AndroidThunkJava_QueryPurchaseHistory(String productType) {}
+                public boolean AndroidThunkJava_IsFeatureSupported(String featureType) { return false; }
+                public void AndroidThunkJava_ShowInAppMessages() {}
+                public boolean AndroidThunkJava_IsBillingReady() { return false; }
+            </false>
+        </if>
+	</gameActivityClassAdditions>
+
+</root>

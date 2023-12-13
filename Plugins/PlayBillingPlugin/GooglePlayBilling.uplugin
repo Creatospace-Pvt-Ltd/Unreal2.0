@@ -1,0 +1,33 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "Play Services Billing",
+	"Description": "This plugin provides the Google Play Billing service for Android devices.",
+	"Category": "Android",
+	"CreatedBy": "Porret Gaming",
+	"CreatedByURL": "https://porret-gaming.github.io/",
+	"DocsURL": "https://porret-gaming.github.io/plugins/google-play-services/billing/overview.html",
+	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/ee2aadf1b3f245949744c04343425630",
+	"SupportURL": "https://porret-gaming.github.io/plugins/google-play-services/billing/contact.html",
+	"EngineVersion": "5.0.0",
+	"CanContainContent": false,
+	"Installed": true,
+	"SupportedTargetPlatforms": [
+		"Win64",
+		"Mac",
+		"Android"
+	],
+	"Modules": [
+		{
+			"Name": "GooglePlayBilling",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [
+				"Win64",
+				"Mac",
+				"Android"
+			]
+		}
+	]
+}
