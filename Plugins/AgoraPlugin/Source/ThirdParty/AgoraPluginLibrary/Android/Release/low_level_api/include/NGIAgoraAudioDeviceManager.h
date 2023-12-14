@@ -165,7 +165,7 @@ class IRecordingDeviceSource : public RefCountInterface {
    * - 0: Success.
    * - < 0: Failure.
    */
-    virtual int registerAudioFrameObserver(media::base::IAudioFrameObserver* observer) = 0;
+    virtual int registerAudioFrameObserver(media::IAudioPcmFrameSink* observer) = 0;
 
   /**
    * Releases the registered IAudioFrameObserver object.
@@ -175,7 +175,7 @@ class IRecordingDeviceSource : public RefCountInterface {
    * - 0: Success.
    * - < 0: Failure.
    */
-    virtual int unregisterAudioFrameObserver(media::base::IAudioFrameObserver* observer) = 0;
+    virtual int unregisterAudioFrameObserver(media::IAudioPcmFrameSink* observer) = 0;
 
   /**
    * Set parameter to object loopback device;

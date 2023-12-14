@@ -1,10 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+//  Copyright (c) 2023 Agora.io. All rights reserved.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "AgoraCppPlugin/Include/AgoraHeaderBase.h"
+#include "AgoraCppPlugin/include/AgoraHeaderBase.h"
 #include "URtcEngineProxyCompatibility.h"
 #include "AgoraIMediaPlayerSourceObserver.h"
 #include "IFrameObserver.h"
@@ -16,22 +16,25 @@ struct FAgoraMediaSource
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|MediaSource")
-	FString url;
+	FString url = "";
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|MediaSource")
-	FString uri;
+	FString uri = "";
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|MediaSource")
-	int startPos;
+	int startPos = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|MediaSource")
-	bool autoPlay;
+	bool autoPlay = false;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|MediaSource")
-	bool enableCache;
+	bool enableCache = false;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|MediaSource")
-	AGORAOPTIONAL isAgoraSource;
+	AGORAOPTIONAL isAgoraSource = AGORAOPTIONAL::AGORA_NULL_VALUE;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|MediaSource")
-	AGORAOPTIONAL isLiveSource;
+	AGORAOPTIONAL isLiveSource = AGORAOPTIONAL::AGORA_NULL_VALUE;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|MediaSource")
-	UIMediaPlayerCustomDataProvider* provider;
+	UIMediaPlayerCustomDataProvider* provider = nullptr;
+
 };
+
+
 UENUM(BlueprintType)
 enum class EAUDIO_DUAL_MONO_MODE : uint8 {
 	AUDIO_DUAL_MONO_STEREO = 0,
@@ -58,37 +61,37 @@ struct FPlayerStreamInfo
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerStreamInfo")
-	int streamIndex;
+	int streamIndex = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerStreamInfo")
-	EMEDIA_STREAM_TYPE streamType;
+	EMEDIA_STREAM_TYPE streamType = EMEDIA_STREAM_TYPE::STREAM_TYPE_AUDIO;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerStreamInfo")
-	FString codecName;
+	FString codecName = "";
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerStreamInfo")
-	FString language;
+	FString language = "";
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerStreamInfo")
-	int videoFrameRate;
+	int videoFrameRate = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerStreamInfo")
-	int videoBitRate;
+	int videoBitRate = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerStreamInfo")
-	int videoWidth;
+	int videoWidth = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerStreamInfo")
-	int videoHeight;
+	int videoHeight = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerStreamInfo")
-	int videoRotation;
+	int videoRotation = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerStreamInfo")
-	int audioSampleRate;
+	int audioSampleRate = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerStreamInfo")
-	int audioChannels;
+	int audioChannels = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerStreamInfo")
-	int audioBitsPerSample;
+	int audioBitsPerSample = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerStreamInfo")
-	int duration;
+	int duration = 0;
 };
 
 
 
 /**
- * 
+ *
  */
 UCLASS(Blueprintable)
 class AGORAPLUGIN_API UIMediaPlayer : public UObject
@@ -103,7 +106,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Agora|IMediaPlayer")
 	int OpenWithCustomSource(int64 startPos, UIMediaPlayerCustomDataProvider* provider);
 	UFUNCTION(BlueprintCallable, Category = "Agora|IMediaPlayer")
-	int OpenWithMediaSource(FAgoraMediaSource& source);
+	int OpenWithMediaSource(const FAgoraMediaSource& source);
 	UFUNCTION(BlueprintCallable, Category = "Agora|IMediaPlayer")
 	int Play();
 	UFUNCTION(BlueprintCallable, Category = "Agora|IMediaPlayer")
@@ -131,7 +134,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Agora|IMediaPlayer")
 	int SelectAudioTrack(int index);
 	UFUNCTION(BlueprintCallable, Category = "Agora|IMediaPlayer")
-	int SetPlayerOption(FString key, FString value);
+	int SetPlayerOptionInInt(FString key, int value);
+	UFUNCTION(BlueprintCallable, Category = "Agora|IMediaPlayer")
+	int SetPlayerOptionInString(FString key, FString value);
 	UFUNCTION(BlueprintCallable, Category = "Agora|IMediaPlayer")
 	int TakeScreenshot(FString filename);
 	UFUNCTION(BlueprintCallable, Category = "Agora|IMediaPlayer")
@@ -161,9 +166,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Agora|IMediaPlayer")
 	int UnregisterPlayerSourceObserver(UIMediaPlayerSourceObserver* observer);
 	UFUNCTION(BlueprintCallable, Category = "Agora|IMediaPlayer")
-	int RegisterAudioFrameObserver(UIAudioFrameObserver* observer, ERAW_AUDIO_FRAME_OP_MODE_TYPE mode);
+	int RegisterAudioFrameObserver(UIAudioPcmFrameSink* observer, ERAW_AUDIO_FRAME_OP_MODE_TYPE mode = ERAW_AUDIO_FRAME_OP_MODE_TYPE::RAW_AUDIO_FRAME_OP_MODE_READ_ONLY);
 	UFUNCTION(BlueprintCallable, Category = "Agora|IMediaPlayer")
-	int UnregisterAudioFrameObserver(UIAudioFrameObserver* observer);
+	int UnregisterAudioFrameObserver(UIAudioPcmFrameSink* observer);
 	UFUNCTION(BlueprintCallable, Category = "Agora|IMediaPlayer")
 	int RegisterVideoFrameObserver(UIVideoFrameObserver* observer);
 	UFUNCTION(BlueprintCallable, Category = "Agora|IMediaPlayer")
@@ -201,7 +206,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Agora|IMediaPlayer")
 	int UnloadSrc(FString src);
 	UFUNCTION(BlueprintCallable, Category = "Agora|IMediaPlayer")
-	int SetSpatialAudioParams(FSpatialAudioParams& params);
+	int SetSpatialAudioParams(const FSpatialAudioParams& params);
 	UFUNCTION(BlueprintCallable, Category = "Agora|IMediaPlayer")
 	int SetSoundPositionParams(float pan, float gain);
 	void SetMediaPlayer(agora::agora_refptr<agora::rtc::IMediaPlayer> mediaPlayer);

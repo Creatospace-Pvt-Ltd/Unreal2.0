@@ -110,6 +110,18 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (int)leaveChannelEx:(AgoraRtcConnection * _Nonnull)connection
     leaveChannelBlock:(void(^ _Nullable)(AgoraChannelStats* _Nonnull stat))leaveChannelBlock NS_SWIFT_NAME(leaveChannelEx(_:leaveChannelBlock:));
+
+/**
+ * Resets the SDK delegate.
+ *
+ * The SDK uses the delegate to inform the app on engine runtime events. All methods defined in the
+ * delegate are optional implementation methods.
+ *
+ * @param delegate The AgoraRtcEngineDelegate protocol.
+ * @param connection The AgoraRtcConnection object.
+ */
+- (int)setDelegateEx:(id<AgoraRtcEngineDelegate> _Nullable)delegate connection:(AgoraRtcConnection * _Nonnull)connection;
+
 /**
  *Stops or resumes sending the local audio stream with connection.
  *
@@ -273,6 +285,8 @@ NS_ASSUME_NONNULL_BEGIN
  /**
    * Enables or disables the dual video stream mode.
    *
+   * @deprecated v4.2.0. This method is deprecated. Use setDualStreamModeEx instead.
+   *
    * If dual-stream mode is enabled, the subscriber can choose to receive the high-stream
    * (high-resolution high-bitrate video stream) or low-stream (low-resolution low-bitrate video
    * stream) video using \ref setRemoteVideoStreamType setRemoteVideoStreamType.
@@ -337,8 +351,9 @@ NS_ASSUME_NONNULL_BEGIN
    * - 0: Success.
    * - < 0: Failure.
    */
-- (int)setRemoteVideo:(NSUInteger)uid SubscriptionOptionsEx:(AgoraVideoSubscriptionOptions* _Nonnull)options
-           connection:(AgoraRtcConnection* _Nonnull)connection NS_SWIFT_NAME(setRemoteVideo(_:SubscriptionOptionsEx:connection:));
+- (int)setRemoteVideoSubscriptionOptionsEx:(NSUInteger)uid
+                                   options:(AgoraVideoSubscriptionOptions* _Nonnull)options
+                                connection:(AgoraRtcConnection* _Nonnull)connection NS_SWIFT_NAME(setRemoteVideoSubscriptionOptionsEx(_:options:connection:));
 
 /**
  * Pushes the encoded external video frame to specified connection in Agora SDK.
@@ -346,9 +361,9 @@ NS_ASSUME_NONNULL_BEGIN
  * @note
  * Ensure that you have configured encoded video source before calling this method.
  *
- * @param data The encoded external video data, which must be the direct buffer.
- * @param frameInfo The encoded external video frame info: AgoraEncodedVideoFrameInfo.
- * @param connection  \ref AgoraRtcConnection by channelId and uid combine
+ * @param frame The encoded external video data, which must be the direct buffer.
+ * @param info The encoded external video frame info: AgoraEncodedVideoFrameInfo.
+ * @param videoTrackId The id of the video track.
  *
  * @return
  * - 0: Success, which means that the encoded external video frame is pushed successfully.
@@ -442,6 +457,39 @@ NS_ASSUME_NONNULL_BEGIN
                       deviceName:(NSString* _Nullable)deviceName
                       connection:(AgoraRtcConnection * _Nonnull)connection NS_SWIFT_NAME(enableLoopbackRecordingEx(_:deviceName:connection:));
 #endif
+
+/**
+ * Adjusts the recording volume.
+ *
+ * @param volume The recording volume, which ranges from 0 to 400:
+ * - 0  : Mute the recording volume.
+ * - 100: The original volume.
+ * - 400: (Maximum) Four times the original volume with signal clipping protection.
+ *
+ * @param connection  \ref AgoraRtcConnection by channelId and uid combine
+ *
+ * @return
+ * - 0  : Success.
+ * - < 0: Failure.
+ */
+- (int)adjustRecordingSignalVolumeEx:(NSInteger)volume
+                          connection:(AgoraRtcConnection* _Nonnull)connection;
+
+/**
+ * Mutes or resume recording signal volume.
+ *
+ * @param mute Determines whether to mute or resume the recording signal volume.
+ * - YES: Mute the recording signal volume.
+ * -  NO: (Default) Resume the recording signal volume.
+ *
+ * @param connection  \ref AgoraRtcConnection by channelId and uid combine
+ *
+ * @return
+ * - 0  : Success.
+ * - < 0: Failure.
+ */
+- (int)muteRecordingSignalEx:(BOOL)mute
+                  connection:(AgoraRtcConnection* _Nonnull)connection;
 
 /** Adjust the playback signal volume of a specified remote user.
 
@@ -637,6 +685,27 @@ If the remote user does not receive the data stream within five seconds, the SDK
                 connection:(AgoraRtcConnection * _Nonnull)connection NS_SWIFT_NAME(sendStreamMessageEx(_:data:connection:));
 
 /**-----------------------------------------------------------------------------
+ * @name Stream Fallback
+ * -----------------------------------------------------------------------------
+ */
+
+ /**
+ * Sets the high priority user list and related remote subscribe fallback option.
+ *
+ * @param uidList The uid list of high priority users.
+ * @param option The remote subscribe fallback option of high priority users.
+ * @param connection  \ref AgoraRtcConnection by channelId and uid combine.
+ *
+ * @return
+ * - 0: Success.
+ * - < 0: Failure.
+ */
+
+- (int)setHighPriorityUserListEx:(NSArray <NSNumber *> *_Nullable)uidList
+                          option:(AgoraStreamFallbackOptions)option
+                      connection:(AgoraRtcConnection* _Nonnull)connection;
+
+/**-----------------------------------------------------------------------------
  * @name Stream Publish
  * -----------------------------------------------------------------------------
  */
@@ -755,24 +824,49 @@ If the remote user does not receive the data stream within five seconds, the SDK
 - (int)stopRtmpStreamEx:(NSString* _Nonnull)url
              connection:(AgoraRtcConnection * _Nonnull)connection NS_SWIFT_NAME(stopRtmpStreamEx(_:connection:));
 
+/** Starts or update to relay media streams across channels.
+ *
+ * @since v4.2.0
+ * @param config The configuration of the media stream relay:AgoraChannelMediaRelayConfiguration.
+ * @param connection AgoraRtcConnection.
+ * @return
+ * - 0: Success.
+ * - < 0: Failure.
+ *   - -1(ERR_FAILED): A general error occurs (no specified reason).
+ *   - -2(ERR_INVALID_ARGUMENT): The argument is invalid.
+ *   - -5(ERR_REFUSED): The request is rejected.
+ *   - -8(ERR_INVALID_STATE): The current status is invalid, only allowed to be called when the role is the broadcaster.
+ */
+- (int)startOrUpdateChannelMediaRelayEx:(AgoraChannelMediaRelayConfiguration * _Nonnull)config connection:(AgoraRtcConnection * _Nonnull)connection NS_SWIFT_NAME(startOrUpdateChannelMediaRelayEx(_:connection:));
+
 /** Starts to relay media streams across channels.
  *
- * @param configuration The configuration of the media stream relay:AgoraChannelMediaRelayConfiguration.
+ * @deprecated v4.2.0 Use `startOrUpdateChannelMediaRelayEx` instead.
+ * @param config The configuration of the media stream relay:AgoraChannelMediaRelayConfiguration.
  * @param connection AgoraRtcConnection.
  * @return
  * - 0: Success.
  * - < 0: Failure.
+ *   - -1(ERR_FAILED): A general error occurs (no specified reason).
+ *   - -2(ERR_INVALID_ARGUMENT): The argument is invalid.
+ *   - -5(ERR_REFUSED): The request is rejected.
+ *   - -8(ERR_INVALID_STATE): The current status is invalid, only allowed to be called when the role is the broadcaster.
  */
-- (int)startChannelMediaRelayEx:(AgoraChannelMediaRelayConfiguration * _Nonnull)config connection:(AgoraRtcConnection * _Nonnull)connection NS_SWIFT_NAME(startChannelMediaRelayEx(_:connection:));
+- (int)startChannelMediaRelayEx:(AgoraChannelMediaRelayConfiguration * _Nonnull)config connection:(AgoraRtcConnection * _Nonnull)connection NS_SWIFT_NAME(startChannelMediaRelayEx(_:connection:)) __deprecated_msg("use startOrUpdateChannelMediaRelayEx instead.");
 
 /** Updates the channels for media stream relay
- * @param configuration The media stream relay configuration: AgoraChannelMediaRelayConfiguration.
+ * @deprecated v4.2.0 Use `startOrUpdateChannelMediaRelayEx` instead.
+ * @param config The media stream relay configuration: AgoraChannelMediaRelayConfiguration.
  * @param connection AgoraRtcConnection.
  * @return
  * - 0: Success.
  * - < 0: Failure.
+ *   - -1(ERR_FAILED): A general error occurs (no specified reason).
+ *   - -2(ERR_INVALID_ARGUMENT): The argument is invalid.
+ *   - -5(ERR_REFUSED): The request is rejected.
+ *   - -7(ERR_NOT_INITIALIZED): cross channel media streams are not relayed.
  */
-- (int)updateChannelMediaRelayEx:(AgoraChannelMediaRelayConfiguration * _Nonnull)config connection:(AgoraRtcConnection * _Nonnull)connection NS_SWIFT_NAME(updateChannelMediaRelayEx(_:connection:));
+- (int)updateChannelMediaRelayEx:(AgoraChannelMediaRelayConfiguration * _Nonnull)config connection:(AgoraRtcConnection * _Nonnull)connection NS_SWIFT_NAME(updateChannelMediaRelayEx(_:connection:)) __deprecated_msg("use startOrUpdateChannelMediaRelayEx instead.");
 
 /** Stops the media stream relay.
  *
@@ -783,6 +877,10 @@ If the remote user does not receive the data stream within five seconds, the SDK
  * @return
  * - 0: Success.
  * - < 0: Failure.
+ *   - -1(ERR_FAILED): A general error occurs (no specified reason).
+ *   - -2(ERR_INVALID_ARGUMENT): The argument is invalid.
+ *   - -5(ERR_REFUSED): The request is rejected.
+ *   - -7(ERR_NOT_INITIALIZED): cross channel media streams are not relayed.
  */
 - (int)stopChannelMediaRelayEx:(AgoraRtcConnection * _Nonnull)connection NS_SWIFT_NAME(stopChannelMediaRelayEx(_:));
 
@@ -792,6 +890,10 @@ If the remote user does not receive the data stream within five seconds, the SDK
  * @return
  * - 0: Success.
  * - < 0: Failure.
+ *   - -1(ERR_FAILED): A general error occurs (no specified reason).
+ *   - -2(ERR_INVALID_ARGUMENT): The argument is invalid.
+ *   - -5(ERR_REFUSED): The request is rejected.
+ *   - -7(ERR_NOT_INITIALIZED): cross channel media streams are not relayed.
  */
 - (int)pauseAllChannelMediaRelayEx:(AgoraRtcConnection * _Nonnull)connection NS_SWIFT_NAME(pauseAllChannelMediaRelayEx(_:));
 
@@ -801,8 +903,30 @@ If the remote user does not receive the data stream within five seconds, the SDK
  * @return
  * - 0: Success.
  * - < 0: Failure.
+ *   - -1(ERR_FAILED): A general error occurs (no specified reason).
+ *   - -2(ERR_INVALID_ARGUMENT): The argument is invalid.
+ *   - -5(ERR_REFUSED): The request is rejected.
+ *   - -7(ERR_NOT_INITIALIZED): cross channel media streams are not relayed.
  */
 - (int)resumeAllChannelMediaRelayEx:(AgoraRtcConnection * _Nonnull)connection NS_SWIFT_NAME(resumeAllChannelMediaRelayEx(_:));
+
+/**
+ @brief Start tracing media rendering events.
+ @since v4.1.1
+ @discussion
+ - SDK will trace media rendering events when this API is called.
+ - The tracing result can be obtained through callback `[AgoraRtcEngineDelegate rtcEngine:videoRenderingTracingResultOfUid:currentEvent:tracingInfo:]`
+ @param connection AgoraRtcConnection.
+ @note
+ - By default, SDK will trace media rendering events when join channel.
+ - The start point of event tracing will be reset after leaving channel.
+ @return
+ - 0: Success.
+ - < 0: Failure.
+  - `-2(AgoraErrorCodeInvalidArgument)`: The parameter is invalid. Check the channel ID and local uid set by parameter `connection`.
+  - `-7(AgoraErrorCodeNotInitialized)`: The SDK is not initialized.
+ */
+- (int)startMediaRenderingTracingEx:(AgoraRtcConnection * _Nonnull)connection NS_SWIFT_NAME(startMediaRenderingTracingEx(_:));
 
 @end
 

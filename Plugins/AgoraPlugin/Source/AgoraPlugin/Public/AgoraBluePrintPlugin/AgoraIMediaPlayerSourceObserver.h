@@ -1,51 +1,80 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+//  Copyright (c) 2023 Agora.io. All rights reserved.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "AgoraCppPlugin/Include/AgoraHeaderBase.h"
+#include "AgoraCppPlugin/include/AgoraHeaderBase.h"
 #include "AgoraBluePrintPlugin/URtcEngineProxyCompatibility.h"
 #include "AgoraIMediaPlayerSourceObserver.generated.h"
 
 UENUM(BlueprintType)
-enum EMEDIA_PLAYER_ERROR {
-
+enum class EENUMCUSTOM_MEDIA_PLAYER_ERROR : uint8 {
 	PLAYER_ERROR_NONE = 0,
 
-	PLAYER_ERROR_INVALID_ARGUMENTS = -1,
+	PLAYER_ERROR_INVALID_ARGUMENTS = 1,
 
-	PLAYER_ERROR_INTERNAL = -2,
+	PLAYER_ERROR_INTERNAL = 2,
 
-	PLAYER_ERROR_NO_RESOURCE = -3,
 
-	PLAYER_ERROR_INVALID_MEDIA_SOURCE = -4,
+	PLAYER_ERROR_NO_RESOURCE = 3,
 
-	PLAYER_ERROR_UNKNOWN_STREAM_TYPE = -5,
+	PLAYER_ERROR_INVALID_MEDIA_SOURCE = 4,
 
-	PLAYER_ERROR_OBJ_NOT_INITIALIZED = -6,
+	PLAYER_ERROR_UNKNOWN_STREAM_TYPE = 5,
 
-	PLAYER_ERROR_CODEC_NOT_SUPPORTED = -7,
+	PLAYER_ERROR_OBJ_NOT_INITIALIZED = 6,
 
-	PLAYER_ERROR_VIDEO_RENDER_FAILED = -8,
+	PLAYER_ERROR_CODEC_NOT_SUPPORTED = 7,
 
-	PLAYER_ERROR_INVALID_STATE = -9,
+	PLAYER_ERROR_VIDEO_RENDER_FAILED = 8,
 
-	PLAYER_ERROR_URL_NOT_FOUND = -10,
+	PLAYER_ERROR_INVALID_STATE = 9,
 
-	PLAYER_ERROR_INVALID_CONNECTION_STATE = -11,
+	PLAYER_ERROR_URL_NOT_FOUND = 10,
 
-	PLAYER_ERROR_SRC_BUFFER_UNDERFLOW = -12,
+	PLAYER_ERROR_INVALID_CONNECTION_STATE = 11,
 
-	PLAYER_ERROR_INTERRUPTED = -13,
+	PLAYER_ERROR_SRC_BUFFER_UNDERFLOW = 12,
 
-	PLAYER_ERROR_NOT_SUPPORTED = -14,
+	PLAYER_ERROR_INTERRUPTED = 13,
 
-	PLAYER_ERROR_TOKEN_EXPIRED = -15,
+	PLAYER_ERROR_NOT_SUPPORTED = 14,
 
-	PLAYER_ERROR_IP_EXPIRED = -16,
-	PLAYER_ERROR_UNKNOWN = -17,
+	PLAYER_ERROR_TOKEN_EXPIRED = 15,
+
+	PLAYER_ERROR_IP_EXPIRED = 16,
+
+	PLAYER_ERROR_UNKNOWN = 17,
+
 };
+
+USTRUCT(BlueprintType)
+struct FENUMWRAP_MEDIA_PLAYER_ERROR {
+
+	GENERATED_BODY()
+
+public:
+
+	// require to call [GetRawValue] method to get the raw value
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|EENUMCUSTOM_MEDIA_PLAYER_ERROR")
+	EENUMCUSTOM_MEDIA_PLAYER_ERROR ValueWrapper = EENUMCUSTOM_MEDIA_PLAYER_ERROR::PLAYER_ERROR_NONE;
+
+	// default
+	FENUMWRAP_MEDIA_PLAYER_ERROR() :ValueWrapper(EENUMCUSTOM_MEDIA_PLAYER_ERROR::PLAYER_ERROR_NONE) {}
+
+	FENUMWRAP_MEDIA_PLAYER_ERROR(EENUMCUSTOM_MEDIA_PLAYER_ERROR Val) :ValueWrapper(Val) {}
+
+	FENUMWRAP_MEDIA_PLAYER_ERROR(agora::media::base::MEDIA_PLAYER_ERROR Val) :ValueWrapper((EENUMCUSTOM_MEDIA_PLAYER_ERROR)(-(int)Val)) {}
+	void operator = (EENUMCUSTOM_MEDIA_PLAYER_ERROR InValue) {
+		ValueWrapper = InValue;
+	}
+
+	agora::rtc::AUDIO_EFFECT_PRESET GetRawValue() const {
+		return (agora::rtc::AUDIO_EFFECT_PRESET)(-(int)ValueWrapper);
+	}
+};
+
 UENUM(BlueprintType)
 enum EMEDIA_PLAYER_EVENT {
 
@@ -83,8 +112,9 @@ enum EMEDIA_PLAYER_EVENT {
 
 	PLAYER_EVENT_TRY_OPEN_FAILED = 18,
 };
+
 UENUM(BlueprintType)
-enum class EPLAYER_PRELOAD_EVENT :uint8{
+enum class EPLAYER_PRELOAD_EVENT :uint8 {
 
 	PLAYER_PRELOAD_EVENT_BEGIN = 0,
 
@@ -92,44 +122,52 @@ enum class EPLAYER_PRELOAD_EVENT :uint8{
 
 	PLAYER_PRELOAD_EVENT_ERROR = 2,
 };
+
 USTRUCT(BlueprintType)
 struct FSrcInfo {
 	GENERATED_BODY()
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|SrcInfo")
-	int bitrateInKbps;
+	int bitrateInKbps = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|SrcInfo")
-	FString name;
+	FString name = "";
 
 };
+
 USTRUCT(BlueprintType)
 struct FCacheStatistics {
+
 	GENERATED_BODY()
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|CacheStatistics")
-	int64 fileSize;
+	int64 fileSize = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|CacheStatistics")
-	int64 cacheSize;
+	int64 cacheSize = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|CacheStatistics")
-	int64 downloadSize;
+	int64 downloadSize = 0;
 };
 
 USTRUCT(BlueprintType)
 struct FPlayerUpdatedInfo {
 	GENERATED_BODY()
+
+	// If the box is unchecked, the value of the corresponding variable (named without _SetValue)  will be ignored.
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerUpdatedInfo")
-	AGORAOPTIONAL playerIdValue;
+	bool playerId_SetValue = false;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerUpdatedInfo")
-	FString playerId;
+	FString playerId = "";
+	// If the box is unchecked, the value of the corresponding variable (named without _SetValue)  will be ignored.
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerUpdatedInfo")
-	AGORAOPTIONAL deviceIdValue;
+	bool deviceId_SetValue = false;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerUpdatedInfo")
-	FString deviceId;
+	FString deviceId = "";
+	// If the box is unchecked, the value of the corresponding variable (named without _SetValue)  will be ignored.
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerUpdatedInfo")
-	AGORAOPTIONAL cacheStatisticsValue;
+	bool cacheStatistics_SetValue = false;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|PlayerUpdatedInfo")
-	FCacheStatistics cacheStatistics;
+	FCacheStatistics cacheStatistics = FCacheStatistics();
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPlayerSourceStateChanged, EMEDIA_PLAYER_STATE, state, EMEDIA_PLAYER_ERROR, ec);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPlayerSourceStateChanged, EMEDIA_PLAYER_STATE, state, FENUMWRAP_MEDIA_PLAYER_ERROR, ec);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPositionChanged, int64, position_ms);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPlayerEvent, EMEDIA_PLAYER_EVENT, eventCode, int64, elapsedTime, const FString, message);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMetaDataSource, int64, data, int, length);
@@ -142,11 +180,15 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerInfoUpdated, const FPlayerU
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAudioVolumeIndicationSource, int, volume);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnReadData, TArray<int64>, buffer, int, bufferSize);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSeek, int64, offset, int, whence);
+
+
+class IMediaPlayerSourceObserverClassWrapper : public agora::rtc::IMediaPlayerSourceObserver {};
+
 /**
- * 
+ *
  */
 UCLASS(Blueprintable)
-class AGORAPLUGIN_API UIMediaPlayerSourceObserver : public UObject, public agora::rtc::IMediaPlayerSourceObserver
+class AGORAPLUGIN_API UIMediaPlayerSourceObserver : public UObject, public IMediaPlayerSourceObserverClassWrapper
 {
 	GENERATED_BODY()
 public:
@@ -197,11 +239,16 @@ public:
 
 };
 
+
+class IMediaPlayerCustomDataProviderClassWrapper : public agora::media::base::IMediaPlayerCustomDataProvider {};
+
 UCLASS(Blueprintable)
-class AGORAPLUGIN_API UIMediaPlayerCustomDataProvider : public UObject, public agora::media::base::IMediaPlayerCustomDataProvider
+class AGORAPLUGIN_API UIMediaPlayerCustomDataProvider : public UObject, public IMediaPlayerCustomDataProviderClassWrapper
 {
 	GENERATED_BODY()
+
 public:
+
 	UPROPERTY(BlueprintAssignable, Category = "Agora|Event")
 	FOnReadData OnReadData;
 	UPROPERTY(BlueprintAssignable, Category = "Agora|Event")

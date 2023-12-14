@@ -17,3 +17,6 @@
 #import <AgoraRtcKit/AgoraRtcMediaPlayerProtocol.h>
 #import <AgoraRtcKit/AgoraSpatialAudioKit.h>
 #import <AgoraRtcKit/AgoraMusicContentCenter.h>
+#import <AgoraRtcKit/AgoraRtmClientKit.h>
+#import <AgoraRtcKit/AgoraH265TranscoderProtocol.h>
+#import <AgoraRtcKit/AgoraH265TranscoderDelegate.h>

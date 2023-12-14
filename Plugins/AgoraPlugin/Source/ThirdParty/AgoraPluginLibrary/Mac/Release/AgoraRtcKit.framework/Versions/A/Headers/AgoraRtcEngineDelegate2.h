@@ -439,4 +439,14 @@ elapseSinceLastState:(int)elapseSinceLastState NS_SWIFT_NAME(rtcEngine(_:didVide
 
 - (void)rtcEngine:(AgoraRtcEngineKit * _Nonnull)engine didRhythmPlayerStateChanged:(AgoraRhythmPlayerState)state
         errorCode:(AgoraRhythmPlayerError)errorCode NS_SWIFT_NAME(rtcEngine(_:didRhythmPlayerStateChanged:errorCode:));
+
+#pragma mark  Local Video Transcoder Delegates Methods
+/**
+ * Occurs when local video transcoder stream has error.
+ *
+ * @param stream Stream type of AgoraTranscodingVideoStream.
+ * @param errorCode Error code of AgoraVideoTranscoderError.
+ */
+- (void)rtcEngine:(AgoraRtcEngineKit * _Nonnull)engine didLocalVideoTranscoderErrorWithStream:(AgoraTranscodingVideoStream * _Nonnull )stream
+        errorCode:(AgoraVideoTranscoderError)errorCode NS_SWIFT_NAME(rtcEngine(_:didLocalVideoTranscoderErrorWithStream:errorCode:));
 @end

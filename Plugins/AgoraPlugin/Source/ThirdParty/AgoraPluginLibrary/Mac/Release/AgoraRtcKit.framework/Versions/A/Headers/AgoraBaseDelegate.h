@@ -33,14 +33,6 @@
 - (void)rtcEngine:(AgoraRtcEngineKit * _Nonnull)engine didUserInfoUpdatedWithUserId:(NSUInteger)uid userInfo:(AgoraUserInfo* _Nonnull)userInfo NS_SWIFT_NAME(rtcEngine(_:didUserInfoUpdatedWithUserId:userInfo:));
 
 /**
- *  The warning occurred in SDK. The APP could igonre the warning, and the SDK could try to resume automically.
- *
- *  @param engine      The engine kit
- *  @param warningCode The warning code
- */
-- (void)rtcEngine:(AgoraRtcEngineKit * _Nonnull)engine didOccurWarning:(AgoraWarningCode)warningCode NS_SWIFT_NAME(rtcEngine(_:didOccurWarning:));
-
-/**
  *  The error occurred in SDK. The SDK couldn't resume to normal state, and the app need to handle it.
  *
  *  @param engine    The engine kit
@@ -118,16 +110,6 @@
  * @param result The uplink and downlink last-mile network probe test result, see [AgoraLastmileProbeResult](AgoraLastmileProbeResult).
  */
 - (void)rtcEngine:(AgoraRtcEngineKit * _Nonnull)engine lastmileProbeTestResult:(AgoraLastmileProbeResult * _Nonnull)result NS_SWIFT_NAME(rtcEngine(_:lastmileProbeTest:));
-
-/**
- *  Event of API call executed
- *  @deprecated This callback is deprecated. Use other specific event callbacks instead.
- *
- *  @param engine The engine kit
- *  @param api    The API description
- *  @param error  The error code
- */
-- (void)rtcEngine:(AgoraRtcEngineKit * _Nonnull)engine didApiCallExecute:(NSInteger)error api:(NSString * _Nonnull)api result:(NSString * _Nonnull)result NS_SWIFT_NAME(rtcEngine(_:didApiCallExecute:api:result:)) __deprecated;
 
 
 #if (!(TARGET_OS_IPHONE) && (TARGET_OS_MAC))

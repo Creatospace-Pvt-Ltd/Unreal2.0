@@ -102,6 +102,9 @@ extern CGSize const AgoraVideoDimension640x480;
 /** 840 x 480
  */
 extern CGSize const AgoraVideoDimension840x480;
+/** 960 x 540 
+ */
+extern CGSize const AgoraVideoDimension960x540;
 /** 960 x 720 (Depends on the hardware)
  */
 extern CGSize const AgoraVideoDimension960x720;

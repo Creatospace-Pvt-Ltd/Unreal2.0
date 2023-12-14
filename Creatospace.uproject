@@ -69,7 +69,7 @@
 		},
 		{
 			"Name": "ScreenCapPlayer",
-			"Enabled": true,
+			"Enabled": false,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/38b887ee46ef471ebdb93d8cfb2ad96a",
 			"SupportedTargetPlatforms": [
 				"Win64"
@@ -160,17 +160,13 @@
 		},
 		{
 			"Name": "EasyFileDialog",
-			"Enabled": true,
+			"Enabled": false,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/bcf64fe2e00c48189d8385a9c39b6e61"
 		},
 		{
 			"Name": "FilePicker",
 			"Enabled": true,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/b571608244b449b784bebc35bd682190"
-		},
-		{
-			"Name": "AndroidFileServer",
-			"Enabled": false
 		},
 		{
 			"Name": "Metasound",
@@ -203,6 +199,10 @@
 				"Mac",
 				"Android"
 			]
+		},
+		{
+			"Name": "AndroidFileServer",
+			"Enabled": false
 		}
 	]
 }

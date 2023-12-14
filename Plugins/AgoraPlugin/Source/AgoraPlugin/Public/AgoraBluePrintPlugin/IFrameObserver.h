@@ -1,10 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.	
+//  Copyright (c) 2023 Agora.io. All rights reserved.	
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "AgoraCppPlugin/Include/AgoraHeaderBase.h"
+#include "AgoraCppPlugin/include/AgoraHeaderBase.h"
 #include "AgoraBluePrintPlugin/URtcEngineProxyCompatibility.h"
 #include "IFrameObserver.generated.h"
 
@@ -21,13 +21,13 @@ struct FAudioPcmFrame {
 
 	GENERATED_BODY()
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|AudioPcmFrame")
-	int64 capture_timestamp;
+	int64 capture_timestamp = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|AudioPcmFrame")
-	int64 samples_per_channel_;
+	int64 samples_per_channel_ = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|AudioPcmFrame")
-	int sample_rate_hz_;
+	int sample_rate_hz_ = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|AudioPcmFrame")
-	int64 num_channels_;
+	int64 num_channels_ = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|AudioPcmFrame")
 	EBYTES_PER_SAMPLE bytes_per_sample = EBYTES_PER_SAMPLE::TWO_BYTES_PER_SAMPLE;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|AudioPcmFrame")
@@ -67,19 +67,19 @@ struct FVideoFrame {
 
 	GENERATED_BODY()
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
-	EVIDEO_PIXEL_FORMAT type;
+	EVIDEO_PIXEL_FORMAT type = EVIDEO_PIXEL_FORMAT::VIDEO_PIXEL_BGRA;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
-	int width;
+	int width = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
-	int height;
+	int height = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
-	int yStride;
+	int yStride = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
-	int uStride;
+	int uStride = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
-	int vStride;
+	int vStride = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
-	int rotation;
+	int rotation = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
 	TArray<int64> yBuffer;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
@@ -87,21 +87,23 @@ struct FVideoFrame {
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
 	TArray<int64> vBuffer;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
-	int64 renderTimeMs;
+	int64 renderTimeMs = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
-	int avsync_type;
+	int avsync_type = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
 	TArray<int64> metadata_buffer;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
-	int metadata_size;
+	int metadata_size = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
-	int64 sharedContext;
+	int64 sharedContext = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
-	int textureId;
+	int textureId = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
 	TArray<float> matrix;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
 	TArray<int64> alphaBuffer;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|VideoFrame")
+	TArray<float> pixelBuffer;
 };
 
 UENUM(BlueprintType)
@@ -115,21 +117,21 @@ struct FAudioFrame {
 
 	GENERATED_BODY()
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|AudioFrame")
-	EAUDIO_FRAME_TYPE type;
+	EAUDIO_FRAME_TYPE type = EAUDIO_FRAME_TYPE::FRAME_TYPE_PCM16;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|AudioFrame")
-	int samplesPerChannel;
+	int samplesPerChannel = 441;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|AudioFrame")
-	EBYTES_PER_SAMPLE bytesPerSample;
+	EBYTES_PER_SAMPLE bytesPerSample = EBYTES_PER_SAMPLE::TWO_BYTES_PER_SAMPLE;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|AudioFrame")
-	int channels;
+	int channels = 1;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|AudioFrame")
-	int samplesPerSec;
+	int samplesPerSec = 44100;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|AudioFrame")
-	int64 buffer;
+	TArray<uint8> buffer;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|AudioFrame")
-	int64 renderTimeMs;
+	int64 renderTimeMs = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|AudioFrame")
-	int avsync_type;
+	int avsync_type = 0;
 };
 USTRUCT(BlueprintType)
 struct FAudioSpectrumData {
@@ -138,16 +140,18 @@ struct FAudioSpectrumData {
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|AudioSpectrumData")
 	TArray<float> audioSpectrumData;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|AudioSpectrumData")
-	int dataLength;
+	int dataLength = 0;
 };
 USTRUCT(BlueprintType)
 struct FUserAudioSpectrumInfo {
 
 	GENERATED_BODY()
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|UserAudioSpectrumInfo")
-	int64 uid;
+	int64 uid = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|UserAudioSpectrumInfo")
-	FAudioSpectrumData spectrumData;
+	FAudioSpectrumData spectrumData = FAudioSpectrumData();
+
 };
 UENUM(BlueprintType)
 enum class EVIDEO_FRAME_TYPE :uint8 {
@@ -169,42 +173,36 @@ struct FEncodedVideoFrameInfo {
 
 	GENERATED_BODY()
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|EncodedVideoFrameInfo")
-	EVIDEO_CODEC_TYPE codecType;
+	EVIDEO_CODEC_TYPE codecType = EVIDEO_CODEC_TYPE::VIDEO_CODEC_GENERIC_H264;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|EncodedVideoFrameInfo")
-	int width;
+	int width = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|EncodedVideoFrameInfo")
-	int height;
+	int height = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|EncodedVideoFrameInfo")
-	int framesPerSecond;
+	int framesPerSecond = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|EncodedVideoFrameInfo")
-	EVIDEO_FRAME_TYPE frameType;
+	EVIDEO_FRAME_TYPE frameType = EVIDEO_FRAME_TYPE::VIDEO_FRAME_TYPE_BLANK_FRAME;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|EncodedVideoFrameInfo")
-	TEnumAsByte<EVIDEO_ORIENTATION>	rotation;
+	FENUMWRAP_VIDEO_ORIENTATION	rotation = EENUMCUSTOM_VIDEO_ORIENTATION::VIDEO_ORIENTATION_0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|EncodedVideoFrameInfo")
-	int trackId;
+	int trackId = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|EncodedVideoFrameInfo")
-	int64 captureTimeMs;
+	int64 captureTimeMs = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|EncodedVideoFrameInfo")
-	int64 decodeTimeMs;
+	int64 decodeTimeMs = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|EncodedVideoFrameInfo")
-	int64 uid;
+	int64 uid = 0;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|EncodedVideoFrameInfo")
-	EVIDEO_STREAM_TYPE streamType;
+	EVIDEO_STREAM_TYPE streamType = EVIDEO_STREAM_TYPE::VIDEO_STREAM_HIGH;
 };
 
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPlaybackAudioFrameBeforeMixing, const FString, channelId, int64, uid,const FAudioFrame&, audioFrame);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPlaybackAudioFrameBeforeMixing, const FString, channelId, int64, uid, const FAudioFrame&, audioFrame);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLocalAudioSpectrum, const FAudioSpectrumData&, data);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnRemoteAudioSpectrum, const TArray<FUserAudioSpectrumInfo>, spectrums, int, spectrumNumber);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCaptureVideoFrame, const FVideoFrame&, videoFrame);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPreEncodeVideoFrame, const FVideoFrame&, videoFrame);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSecondaryCameraCaptureVideoFrame, const FVideoFrame&, videoFrame);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSecondaryPreEncodeCameraVideoFrame, const FVideoFrame&, videoFrame);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnScreenCaptureVideoFrame, const FVideoFrame&, videoFrame);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPreEncodeScreenVideoFrame, const FVideoFrame&, videoFrame);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCaptureVideoFrame, EVIDEO_SOURCE_TYPE, sourceType, const FVideoFrame&, videoFrame);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPreEncodeVideoFrame, EVIDEO_SOURCE_TYPE, sourceType, const FVideoFrame&, videoFrame);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMediaPlayerVideoFrame, const FVideoFrame&, videoFrame, int, mediaPlayerId);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSecondaryScreenCaptureVideoFrame, const FVideoFrame&, videoFrame);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSecondaryPreEncodeScreenVideoFrame, const FVideoFrame&, videoFrame);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnRenderVideoFrame, const FString, channelId, int64, remoteUid, const FVideoFrame&, videoFrame);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTranscodedVideoFrame, const FVideoFrame&, videoFrame);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGetVideoFrameProcessMode);
@@ -220,11 +218,13 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGetObservedAudioFramePosition);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGetPlaybackAudioParams);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGetRecordAudioParams);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGetMixedAudioParams);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFrame, const FAudioPcmFrame&, pcmFrame);
 
 
+class IAudioFrameObserverClassWrapper : public agora::media::IAudioFrameObserver {};
 
 UCLASS(Blueprintable)
-class AGORAPLUGIN_API UIAudioFrameObserver : public UObject, public agora::media::IAudioFrameObserver
+class AGORAPLUGIN_API UIAudioFrameObserver : public UObject, public IAudioFrameObserverClassWrapper
 {
 	GENERATED_BODY()
 public:
@@ -267,10 +267,26 @@ public:
 
 };
 
+class IAudioPcmFrameSinkClassWrapper : public agora::media::IAudioPcmFrameSink {};
+
+UCLASS(Blueprintable)
+class AGORAPLUGIN_API UIAudioPcmFrameSink : public UObject, public IAudioPcmFrameSinkClassWrapper
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintAssignable, Category = "Agora|Event")
+	FOnFrame OnFrame;
+
+	void onFrame(agora::media::base::AudioPcmFrame* frame) override;
+};
+
+
+class IAudioSpectrumObserverClassWrapper : public agora::media::IAudioSpectrumObserver {};
 
 
 UCLASS(Blueprintable)
-class AGORAPLUGIN_API UIAudioSpectrumObserver : public UObject, public agora::media::IAudioSpectrumObserver
+class AGORAPLUGIN_API UIAudioSpectrumObserver : public UObject, public IAudioSpectrumObserverClassWrapper
 {
 	GENERATED_BODY()
 public:
@@ -285,11 +301,11 @@ public:
 };
 
 
-
+class IVideoFrameObserverClassWrapper : public agora::media::IVideoFrameObserver {};
 
 
 UCLASS(Blueprintable)
-class AGORAPLUGIN_API UIVideoFrameObserver : public UObject, public agora::media::IVideoFrameObserver
+class AGORAPLUGIN_API UIVideoFrameObserver : public UObject, public IVideoFrameObserverClassWrapper
 {
 	GENERATED_BODY()
 public:
@@ -298,19 +314,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Agora|Event")
 	FOnPreEncodeVideoFrame OnPreEncodeVideoFrame;
 	UPROPERTY(BlueprintAssignable, Category = "Agora|Event")
-	FOnSecondaryCameraCaptureVideoFrame OnSecondaryCameraCaptureVideoFrame;
-	UPROPERTY(BlueprintAssignable, Category = "Agora|Event")
-	FOnSecondaryPreEncodeCameraVideoFrame OnSecondaryPreEncodeCameraVideoFrame;
-	UPROPERTY(BlueprintAssignable, Category = "Agora|Event")
-	FOnScreenCaptureVideoFrame OnScreenCaptureVideoFrame;
-	UPROPERTY(BlueprintAssignable, Category = "Agora|Event")
-	FOnPreEncodeScreenVideoFrame OnPreEncodeScreenVideoFrame;
-	UPROPERTY(BlueprintAssignable, Category = "Agora|Event")
 	FOnMediaPlayerVideoFrame OnMediaPlayerVideoFrame;
-	UPROPERTY(BlueprintAssignable, Category = "Agora|Event")
-	FOnSecondaryScreenCaptureVideoFrame OnSecondaryScreenCaptureVideoFrame;
-	UPROPERTY(BlueprintAssignable, Category = "Agora|Event")
-	FOnSecondaryPreEncodeScreenVideoFrame OnSecondaryPreEncodeScreenVideoFrame;
 	UPROPERTY(BlueprintAssignable, Category = "Agora|Event")
 	FOnRenderVideoFrame OnRenderVideoFrame;
 	UPROPERTY(BlueprintAssignable, Category = "Agora|Event")
@@ -327,25 +331,15 @@ public:
 	FGetObservedFramePosition GetObservedFramePosition;
 	UPROPERTY(BlueprintAssignable, Category = "Agora|Event")
 	FIsExternal IsExternal;
-	bool onCaptureVideoFrame(agora::media::base::VideoFrame& videoFrame) override;
 
-	bool onPreEncodeVideoFrame(agora::media::base::VideoFrame& videoFrame) override;
 
-	bool onSecondaryCameraCaptureVideoFrame(agora::media::base::VideoFrame& videoFrame) override;
+	bool onCaptureVideoFrame(agora::rtc::VIDEO_SOURCE_TYPE sourceType, agora::media::base::VideoFrame& videoFrame) override;
 
-	bool onSecondaryPreEncodeCameraVideoFrame(agora::media::base::VideoFrame& videoFrame) override;
-
-	bool onScreenCaptureVideoFrame(agora::media::base::VideoFrame& videoFrame) override;
-
-	bool onPreEncodeScreenVideoFrame(agora::media::base::VideoFrame& videoFrame) override;
+	bool onPreEncodeVideoFrame(agora::rtc::VIDEO_SOURCE_TYPE sourceType, agora::media::base::VideoFrame& videoFrame) override;
 
 	bool onMediaPlayerVideoFrame(agora::media::base::VideoFrame& videoFrame, int mediaPlayerId) override;
 
-	bool onSecondaryScreenCaptureVideoFrame(agora::media::base::VideoFrame& videoFrame) override;
-
-	bool onSecondaryPreEncodeScreenVideoFrame(agora::media::base::VideoFrame& videoFrame) override;
-
-	bool onRenderVideoFrame(const char* channelId,agora::rtc::uid_t remoteUid, agora::media::base::VideoFrame& videoFrame) override;
+	bool onRenderVideoFrame(const char* channelId, agora::rtc::uid_t remoteUid, agora::media::base::VideoFrame& videoFrame) override;
 
 	bool onTranscodedVideoFrame(agora::media::base::VideoFrame& videoFrame) override;
 

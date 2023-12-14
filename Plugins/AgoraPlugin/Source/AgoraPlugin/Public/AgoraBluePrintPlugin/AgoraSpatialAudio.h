@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+//  Copyright (c) 2023 Agora.io. All rights reserved.
 
 #pragma once
 
@@ -6,7 +6,7 @@
 #include "UObject/NoExportTypes.h"
 #include "URtcEngineProxyCompatibility.h"
 #include "AgoraBluePrintPlugin/AgoraRtcEngine.h"
-#include "AgoraCppPlugin/Include/AgoraHeaderBase.h"
+#include "AgoraCppPlugin/include/AgoraHeaderBase.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "AgoraSpatialAudio.generated.h"
 
@@ -16,7 +16,7 @@ struct FLocalSpatialAudioConfig
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|LocalSpatialAudioConfig")
-	UAgoraRtcEngine* rtcEngine;
+	UAgoraRtcEngine* rtcEngine = nullptr;
 };
 
 USTRUCT(BlueprintType)
@@ -25,9 +25,9 @@ struct FRemoteVoicePositionInfo
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|RemoteVoicePositionInfo")
-	FVector position;
+	FVector position = FVector(0,0,0);
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Agora|RemoteVoicePositionInfo")
-	FVector forward;
+	FVector forward = FVector(0, 0, 0);
 };
 
 UCLASS(Blueprintable)
@@ -50,6 +50,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Agora|ILocalSpatialAudioEngine")
 	int ClearRemotePositionsEx(FRtcConnection& connection);
 	UFUNCTION(BlueprintCallable, Category = "Agora|ILocalSpatialAudioEngine")
+	int SetRemoteAudioAttenuation(int64 uid, bool forceSet, FString attenuation = "0.0");
+	UFUNCTION(BlueprintCallable, Category = "Agora|ILocalSpatialAudioEngine")
 	void Release();
 	UFUNCTION(BlueprintCallable, Category = "Agora|ILocalSpatialAudioEngine")
 	int SetMaxAudioRecvCount(int maxCount);
@@ -69,6 +71,14 @@ public:
 	int MuteLocalAudioStream(bool mute);
 	UFUNCTION(BlueprintCallable, Category = "Agora|ILocalSpatialAudioEngine")
 	int MuteAllRemoteAudioStreams(bool mute);
+
+	UFUNCTION(BlueprintCallable, Category = "Agora|ILocalSpatialAudioEngine")
+	int SetZones(TArray<FSpatialAudioZone> zones);
+	UFUNCTION(BlueprintCallable, Category = "Agora|ILocalSpatialAudioEngine")
+	int SetPlayerAttenuation(int playerId, bool forceSet, FString attenuation = "0.0");
+	UFUNCTION(BlueprintCallable, Category = "Agora|ILocalSpatialAudioEngine")
+	int muteRemoteAudioStream(int64 uid, bool mute);
+
 	void SetLocalSpatialAudioEngine(agora::rtc::ILocalSpatialAudioEngine* localSpatialAudioEngine);
 private:
 	agora::rtc::ILocalSpatialAudioEngine* LocalSpatialAudioEngine;

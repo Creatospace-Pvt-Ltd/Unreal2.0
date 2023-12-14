@@ -96,6 +96,8 @@ typedef NS_ENUM(NSInteger, AgoraErrorCode) {
     AgoraErrorCodeBufferTooSmall = 6,
     /** 7: The SDK is not initialized before calling this method. */
     AgoraErrorCodeNotInitialized = 7,
+    /** 8: The state is invalid. */
+    AgoraErrorCodeInvalidState = 8,
     /** 9: No permission exists. Check if the user has granted access to the audio or video device. */
     AgoraErrorCodeNoPermission = 9,
     /** 10: An API method timeout occurs. Some API methods require the SDK to return the execution result, and this error occurs if the request takes too long (over 10 seconds) for the SDK to process. */
@@ -995,7 +997,17 @@ typedef NS_ENUM(NSUInteger, AgoraVideoRemoteReason) {
       /**
       * 9: The remote media stream switches back to the video stream after the network conditions improve.
       */
-      AgoraVideoRemoteReasonAudioFallbackRecovery = 9
+      AgoraVideoRemoteReasonAudioFallbackRecovery = 9,
+
+      /**
+      * 12: (iOS only) The app of the remote user is in background.
+      */
+      AgoraVideoRemoteReasonSDKInBackground = 12,
+
+      /**
+      * 13: The remote video stream is not supported by the decoder.
+      */
+      AgoraVideoRemoteReasonCodecNotSupport = 13
 };
 
 /**
@@ -1283,13 +1295,13 @@ typedef NS_ENUM(NSInteger, AgoraAudioOutputRouting) {
      */
     AgoraAudioOutputRoutingHeadsetBluetooth = 5,
     /**
-     * 6: (macOS only) HDMI peripheral.
+     * 6: (macOS only) USB peripheral.
      */
-    AgoraAudioOutputRoutingHdmi = 6,
+    AgoraAudioOutputRoutingUsb = 6,
     /**
-     * 7: (macOS only) USB peripheral.
+     * 7: (macOS only) HDMI peripheral.
      */
-    AgoraAudioOutputRoutingUsb = 7,
+    AgoraAudioOutputRoutingHdmi = 7,
     /**
      * 8: (macOS only) DisplayPort peripheral.
      */
@@ -1602,7 +1614,30 @@ typedef NS_ENUM(NSInteger, AgoraVoiceConversionPreset) {
   /** A solid voice. */
   AgoraVoiceConversionPresetChangerSolid = 0x03010300,
   /** A bass voice. */
-  AgoraVoiceConversionPresetChangerBass = 0x03010400
+  AgoraVoiceConversionPresetChangerBass = 0x03010400,
+  /** A voice like a cartoon character. */
+  AgoraVoiceConversionPresetChangerCartoon = 0x03010500,
+  /** A voice like a child. */
+  AgoraVoiceConversionPresetChangerChildlike = 0x03010600,
+  /** A voice like a phone operator. */
+  AgoraVoiceConversionPresetChangerPhoneOperator = 0x03010700,
+  /** A monster voice. */
+  AgoraVoiceConversionPresetChangerMonster = 0x03010800,
+  /** A voice like Transformers. */
+  AgoraVoiceConversionPresetChangerTransformers = 0x03010900,
+  /** A voice like Groot. */
+  AgoraVoiceConversionPresetChangerGroot = 0x03010A00,
+  /** A voice like Darth Vader. */
+  AgoraVoiceConversionPresetChangerDarthVader = 0x03010B00,
+  /** A rough female voice. */
+  AgoraVoiceConversionPresetChangerIronLady = 0x03010C00,
+  /** A voice like Crayon Shin-chan. */
+  AgoraVoiceConversionPresetChangerShinchan = 0x03010D00,
+  /** A voice like a castrato. */
+  AgoraVoiceConversionPresetChangerGirlishMan = 0x03010E00,
+  /** A voice like chipmunk. */
+  AgoraVoiceConversionPresetChangerChipmunk = 0x03010F00,
+
 };
 
 /** The preset local voice reverberation option. */
@@ -1662,6 +1697,13 @@ typedef NS_ENUM(NSInteger, AgoraMediaDeviceType) {
     AgoraMediaDeviceTypeVideoRender = 2,
     /** Video capture device*/
     AgoraMediaDeviceTypeVideoCapture = 3,
+    /** Audio playback device of the app */
+    AgoraMediaDeviceTypeAudioApplicationPlayout = 4,
+    /** Virtual audio playback device */
+    AgoraMediaDeviceTypeAudioVirtualPlayout = 5,
+    /** Virtual microphone device */
+    AgoraMediaDeviceTypeAudioVirtualRecording = 6,
+
 };
 
 /** Video frame format */
@@ -1809,6 +1851,24 @@ typedef NS_ENUM(NSInteger, AgoraCompressionPreference) {
     AgoraCompressionQuality = 1,
 };
 
+/** Supported codec bit mask types. */
+typedef NS_ENUM(NSInteger, AgoraCodecCapMask) {
+  /** No codec support.
+   */
+    AgoraCodecMaskNone = 0,
+  /** bit 1: Hardware decoder support flag
+   */
+    AgoraCodecMaskHwDec = 1,
+  /** bit 2: Hardware encoder support flag
+   */
+    AgoraCodecMaskHwEnc = 2,
+  /** bit 3: Software decoder support flag
+   */
+    AgoraCodecMaskSwDec = 4,
+  /** bit 4: Software encoder support flag
+   */
+    AgoraCodecMaskSwEnc = 8,
+};
 
 /** The lightening contrast level. */
 typedef NS_ENUM(NSUInteger, AgoraLighteningContrastLevel) {
@@ -1871,12 +1931,16 @@ typedef NS_ENUM(NSUInteger, AgoraLowlightEnhanceLevel) {
  @since v3.7.200
  */
 typedef NS_ENUM(NSUInteger, AgoraVirtualBackgroundSourceType) {
-  /** 1: (Default) The background image is a solid color.*/
+  /** 0: Enable segementation with the captured video frame without replacing the background.*/
+  AgoraVirtualBackgroundNone = 0,
+  /** 1: (Default) The background is a solid color.*/
   AgoraVirtualBackgroundColor = 1,
-  /** 2: The background image is a file in PNG or JPG format.*/
+  /** 2: The background source is a file in PNG or JPG format.*/
   AgoraVirtualBackgroundImg = 2,
-  /** Background source is blur your background */
+  /** 3: The background source is the blurred original video frame.*/
   AgoraVirtualBackgroundBlur = 3,
+  /** 4: The background source is a file in MP4, AVI, MKV, FLV format.*/
+  AgoraVirtualBackgroundVideo = 4,
 } NS_SWIFT_NAME(AgoraVirtualBackgroundSourceType);
 
 /** The lightening contrast level. */
@@ -1985,6 +2049,10 @@ typedef NS_ENUM(NSInteger, AgoraConnectionChangedReason) {
    * 20: The connection is failed due to too many broadcasters in the channel.
    */
   AgoraConnectionChangedTooManyBroadcasters = 20,
+  /**
+   * 21: The connection is failed due to license validation failure.
+   */
+  AgoraConnectionChangedLicenseValidationFailure = 21,
 };
 
 typedef NS_ENUM(NSInteger, AgoraClientRoleChangeFailedReason) {
@@ -2358,6 +2426,20 @@ typedef NS_ENUM (NSInteger, AgoraStreamPublishState) {
   AgoraStreamPublishStatePublished = 3
 };
 /**
+ * The application scenario scenario.
+ *
+ * @since v4.2.0
+ */
+typedef NS_ENUM(NSInteger, AgoraApplicationScenarioType) {
+  /**
+   *  0: Default Scenario.
+   */
+  AgoraApplicationGeneralScenario = 0,
+  /*  1: Meeting Scenario. This scenario is used to optimize the video experience in meeting application, where each participant subscribes multiple broadcasters.
+  */
+  AgoraApplicationMeetingScenario = 1,
+};
+/**
  * The screen sharing scenario.
  *
  * @since v4.0.0
@@ -2475,6 +2557,18 @@ typedef NS_ENUM(NSInteger, AgoraVideoSourceType) {
   /** Video for transcoded.
    */
   AgoraVideoSourceTypeTransCoded = 10,
+  /** Video captured by the third camera.
+   */
+  AgoraVideoSourceTypeCameraThird = 11,
+  /** Video captured by the fourth camera.
+   */
+  AgoraVideoSourceTypeCameraFourth = 12,
+  /** Video for third screen sharing.
+   */
+  AgoraVideoSourceTypeScreenThird = 13,
+  /** Video for fourth screen sharing.
+   */
+  AgoraVideoSourceTypeScreenFourth = 14,
   /** Not define.
    */
   AgoraVideoSourceTypeUnknown = 100
@@ -2906,6 +3000,40 @@ typedef NS_ENUM(NSInteger, AgoraRhythmPlayerError) {
   AgoraRhythmPlayerErrorFileOverDurationLimit,
 };
 
+/**
+ The error codes of the local video transcoder.
+ */
+typedef NS_ENUM(NSInteger, AgoraVideoTranscoderError) {
+  /**
+   * No error
+   */
+  AgoraVideoTranscoderErrorOK = 0,
+  /**
+   * Occurs when video track not started of video source.
+   */
+  AgoraVideoTranscoderErrorVideoSourceNotReady = 1,
+  /**
+   * Occurs when source type not on support list.
+   */
+  AgoraVideoTranscoderErrorInvalidVideoSourceType = 2,
+  /**
+   * Occurs when image url is not correctly of image source.
+   */
+  AgoraVideoTranscoderErrorInvalidImagePath = 3,
+  /**
+   * Occurs when image format not the type png/jpeg/gif of image source.
+   */
+  AgoraVideoTranscoderErrorUnsupportImageFormat = 4,
+  /**
+   * Occurs when layout is invalid such as width is zero.
+   */
+  AgoraVideoTranscoderErrorInvalidLayout = 5,
+  /**
+   * Internal error.
+   */
+  AgoraVideoTranscoderErrorInternal = 20
+};
+
 typedef NS_ENUM(NSUInteger, AgoraLocalProxyMode) {
   /** Connect local proxy with high priority, if not connected to local proxy, fallback to sdrtn.
    */
@@ -2933,6 +3061,12 @@ typedef NS_ENUM(NSUInteger, AgoraProxyType) {
   /** The cloud proxy, auto fallback.
    */
   AgoraTcpProxyAutoFallbackType = 4,
+  /** The http proxy.
+   */
+  AgoraHttpProxyType = 5,
+  /** The https proxy.
+   */
+  AgoraHttpsProxyType = 6,
 } NS_SWIFT_NAME(AgoraProxyType);
 
 
@@ -3050,4 +3184,104 @@ typedef NS_ENUM(NSInteger, AgoraScreenCaptureSourceType) {
   AgoraScreenCaptureSourceTypeScreen = 1,
   /** 2: Reserved parameter. */
   AgoraScreenCaptureSourceTypeCustom = 2,
+};
+
+typedef NS_ENUM(NSInteger, AgoraScreenCaptureFrameRateCapability) {
+  AgoraScreenCaptureFrameRateUnKonw = -1,
+  AgoraScreenCaptureFrameRate15FPS = 0,
+  AgoraScreenCaptureFrameRate30FPS = 1,
+  AgoraScreenCaptureFrameRate60FPS = 2,
+};
+
+typedef NS_ENUM(NSInteger, AgoraAudioTrackType) {
+  /** 
+   * 0: Mixable audio track
+   * You can push more than one mixable Audio tracks into one RTC connection(channel id + uid), 
+   * and SDK will mix these tracks into one audio track automatically.
+   * However, compare to direct audio track, mixable track might cause extra 30ms+ delay.
+   */
+  AgoraAudioTrackTypeMixable = 0,
+  /**
+   * 1: Direct audio track
+   * You can only push one direct (non-mixable) audio track into one RTC connection(channel id + uid). 
+   * Compare to mixable stream, you can have lower lantency using direct audio track.
+   */
+  AgoraAudioTrackTypeDirect = 1,
+};
+
+/**
+ * Audio AINS mode, decide the type of the audio noise suppression.
+ */
+typedef NS_ENUM(NSInteger, AUDIO_AINS_MODE) {
+    /** AINS mode with soft suppression level.*/
+    AINS_MODE_BALANCED = 0,
+    /** AINS mode with high suppression level.*/
+    AINS_MODE_AGGRESSIVE = 1,
+    /** AINS mode with high suppression level and ultra-low-latency */
+    AINS_MODE_ULTRALOWLATENCY = 2
+};
+
+/**
+ * The tracing event of media rendering.
+ */
+typedef NS_ENUM(NSInteger, AgoraMediaTraceEvent) {
+  /**
+   * 0: The media frame has been rendered.
+   */
+  AgoraMediaTraceEventVideoRendered = 0,
+  /**
+   * 1: The media frame has been decoded.
+   */
+  AgoraMediaTraceEventVideoDecoded = 1,
+};
+
+typedef NS_ENUM(NSInteger, AgoraH265TranscodeResult) {
+  /**
+   * -1: Unknown error.
+  */
+  AgoraH265TranscodeResultUnknown = -1,
+  /**
+   * 0: The request of operation is successfully.
+  */
+  AgoraH265TranscodeResultSuccess = 0,
+  /**
+   * This request is invalid. Possible reasons include incorrect parameters.
+  */
+  AgoraH265TranscodeResultRequestInvalid = 1,
+  /**
+   * 2: Authentication failed, please check for correctnes of token.
+  */
+  AgoraH265TranscodeResultUnauthorized = 2,
+  /**
+   * 3: The token is expired, please update token.
+  */
+  AgoraH265TranscodeResultTokenExpired = 3,
+  /**
+   * 4: No permission to access the interface.
+  */
+  AgoraH265TranscodeResultForbidden = 4,
+  /**
+   * 5: The url of request is not found.
+  */
+  AgoraH265TranscodeResultNotFound = 5,
+  /**
+   * 6: The request encountered a conflict, please try again.
+  */
+  AgoraH265TranscodeResultConflict = 6,
+  /**
+   * 7: Content type not supported.
+  */
+  AgoraH265TranscodeResultNotSupported = 7,
+  /**
+   * 8: The requests are too frequent.
+  */
+  AgoraH265TranscodeResultTooOften = 8,
+  /**
+   * 9: Internal Server Error, you can try sending the request again.
+  */
+  AgoraH265TranscodeResultServerInternalError = 9,
+  /**
+   * 10: Service is unavailable.
+  */
+  AgoraH265TranscodeResultServiceUnavailable = 10
 };

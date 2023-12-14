@@ -292,14 +292,28 @@ NS_ASSUME_NONNULL_BEGIN
 - (int)getPublishSignalVolume NS_SWIFT_NAME(getPublishSignalVolume());
 
 /**
- * @brief modify player option before play,
+ * @brief Modify player option before opening file or url,
  * @param [in] key
- *        the option key name reference AgoraConstants.h
+ *        the option key name 
  * @param [in] value
  *        the option value
- * @return int <= 0 On behalf of an error, the value corresponds to one of PLAYER_ERROR
+ * @return 
+ * - 0: Success.
+ * - < 0: Failure. See AgoraMediaPlayerError.
  */
 - (int)setPlayerOption:(NSString *)key value:(NSInteger)value NS_SWIFT_NAME(setPlayerOption(_:value:));
+
+/**
+ * @brief Modify player option before opening file or url,
+ * @param [in] key
+ *        the option key name
+ * @param [in] value
+ *        the option value
+ * @return 
+ * - 0: Success.
+ * - < 0: Failure. See AgoraMediaPlayerError.
+ */
+- (int)setPlayerOptionString:(NSString *)key value:(NSString *)value NS_SWIFT_NAME(setPlayerOptionString(_:value:));
 
 /**
  * @brief Set video rendering view
@@ -382,7 +396,7 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (int)openWithCustomSourceAtStartPos:(NSInteger)startPos
                  withPlayerOnReadData:(AgoraRtcMediaPlayerCustomSourceOnReadCallback)onReadDataCallback
-                      andPlayerOnSeek:(AgoraRtcMediaPlayerCustomSourceOnSeekCallback)onSeekCallback NS_SWIFT_NAME(openWithCustomSourceAtStartPos(_:withPlayerOnReadData:andPlayerOnSeek:));
+                      andPlayerOnSeek:(AgoraRtcMediaPlayerCustomSourceOnSeekCallback)onSeekCallback NS_SWIFT_NAME(openWithCustomSourceAtStartPos(_:withPlayerOnReadData:andPlayerOnSeek:)) __deprecated;
 
 /**
   * Set spatial audio params for the music file. It can be called after the media player

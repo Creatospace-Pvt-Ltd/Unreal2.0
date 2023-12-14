@@ -23,9 +23,14 @@ typedef NS_ENUM(NSUInteger, AgoraMusicContentCenterPreloadStatus) {
     AgoraMusicContentCenterPreloadStatusError = 1,
 
     /**
-     * 2: The media is preloading.
+     * 2: The media file is preloading.
      */
     AgoraMusicContentCenterPreloadStatusPreloading = 2,
+    
+    /**
+     * 3: The media file is removed.
+     */
+    AgoraMusicContentCenterPreloadStatusRemoveCache = 3,
 };
 
 /**
@@ -36,14 +41,66 @@ typedef NS_ENUM(NSUInteger, AgoraMusicContentCenterStatusCode) {
      * 0: No error occurs and request succeeds.
      */
     AgoraMusicContentCenterStatusCodeOK = 0,
-
     /**
-     * 1: A general error occurs.
+     * 1: The gateway error. There are several possible reasons:
+     *  - Token is expired. Check if your token is expired.
+     *  - Token is invalid. Check the type of token you passed in.
+     *  - Network error. Check your network.
      */
     AgoraMusicContentCenterStatusCodeError = 1,
+    /**
+     * 2: The gateway error. There are several possible reasons:
+     *  - Token is expired. Check if your token is expired.
+     *  - Token is invalid. Check the type of token you passed in.
+     *  - Network error. Check your network.
+     */
+    AgoraMusicContentCenterStatusCodeErrorGateway = 2,
+    /**
+     * 3: Permission and resource error. There are several possible reasons:
+     *  - Your appid may not have the mcc permission. Please contact technical support 
+     *  - The resource may not exist. Please contact technical support
+     */
+    AgoraMusicContentCenterStatusCodeErrorPermissionAndResource = 3,
+    /**
+     * 4: Internal data parse error. Please contact technical support
+     */
+    AgoraMusicContentCenterStatusCodeErrorInternalDataParse = 4,
+    /**
+     * 5: Music loading error. Please contact technical support
+     */
+    AgoraMusicContentCenterStatusCodeErrorMusicLoading = 5,
+    /**
+     * 6: Music decryption error. Please contact technical support
+     */
+    AgoraMusicContentCenterStatusCodeErrorMusicDecryption = 6,
+
+};
+
+typedef NS_ENUM(NSUInteger, AgoraMusicCacheStatusType) {
+    /**
+     * 0: The media file is already cached.
+     */
+    AgoraMusicCacheStatusTypeCached = 0,
+
+    /**
+     * 1: The media file is being cached.
+     */
+    AgoraMusicCacheStatusTypeCaching = 1,
 };
 
 NS_ASSUME_NONNULL_BEGIN
+
+__attribute__((visibility("default"))) @interface AgoraMusicCacheInfo : NSObject
+/**
+ * The songCode of the music
+ */
+@property(nonatomic, assign) NSInteger songCode;
+
+/**
+ * The cache status of the music
+ */
+@property(nonatomic, assign) AgoraMusicCacheStatusType statusType;
+@end
 
 __attribute__((visibility("default"))) @interface AgoraMusicChartInfo : NSObject
 /**
@@ -174,38 +231,39 @@ __attribute__((visibility("default"))) @interface AgoraMusicCollection : NSObjec
  * The music chart result callback; occurs when getMusicCharts method is called.
  * 
  * @param requestId The request id same with return from getMusicCharts.
- * @param status The status of the request. See MusicContentCenterStatusCode
  * @param result The result of music chart collection
+ * @param errorCode The status of the request. See MusicContentCenterStatusCode
  */
-- (void)onMusicChartsResult:(NSString *)requestId status:(AgoraMusicContentCenterStatusCode)status result:(NSArray<AgoraMusicChartInfo*> *)result;
+- (void)onMusicChartsResult:(NSString *)requestId result:(NSArray<AgoraMusicChartInfo*> *)result errorCode:(AgoraMusicContentCenterStatusCode)errorCode;
 
 /**
  * Music collection, occurs when getMusicCollectionByMusicChartId or searchMusic method is called.
  * 
- * @param requestId The request id same with return from getMusicCollectionByMusicChartId or searchMusic
- * @param status The status of the request. See MusicContentCenterStatusCode
+ * @param requestId The request id is the same with that returned by getMusicCollectionByMusicChartId or searchMusic
  * @param result The result of music collection
+ * @param errorCode The status of the request. See MusicContentCenterStatusCode
  */
-- (void)onMusicCollectionResult:(NSString *)requestId status:(AgoraMusicContentCenterStatusCode)status result:(AgoraMusicCollection *)result;
+- (void)onMusicCollectionResult:(NSString *)requestId result:(AgoraMusicCollection *)result errorCode:(AgoraMusicContentCenterStatusCode)errorCode;
 
 /**
  * Lyric url callback of getLyric, occurs when getLyric is called
  * 
  * @param requestId The request id same with return from getLyric
  * @param lyricUrl  The lyric url of this music
+ * @param errorCode The status of the request. See MusicContentCenterStatusCode 
  */
-- (void)onLyricResult:(NSString*)requestId lyricUrl:(NSString*)lyricUrl;
+- (void)onLyricResult:(NSString*)requestId lyricUrl:(NSString* _Nullable)lyricUrl errorCode:(AgoraMusicContentCenterStatusCode)errorCode;
 
 /**
  * Preload process callback, occurs when preload is called
  *
  * @param songCode Song code
  * @param percent Preload progress (0 ~ 100)
- * @param status Preload status; see PreloadStatusCode.
- * @param msg The extra information
  * @param lyricUrl  The lyric url of this music
+ * @param status Preload status; see PreloadStatusCode.
+ * @param errorCode The status of the request. See MusicContentCenterStatusCode
  */
-- (void)onPreLoadEvent:(NSInteger)songCode percent:(NSInteger)percent status:(AgoraMusicContentCenterPreloadStatus)status msg:(NSString *)msg lyricUrl:(NSString *)lyricUrl;
+- (void)onPreLoadEvent:(NSInteger)songCode percent:(NSInteger)percent lyricUrl:(NSString * _Nullable)lyricUrl status:(AgoraMusicContentCenterPreloadStatus)status errorCode:(AgoraMusicContentCenterStatusCode)errorCode;
 @end
 
 
@@ -224,6 +282,10 @@ __attribute__((visibility("default"))) @interface AgoraMusicContentCenterConfig 
  * The user ID when using music content center. It can be different from that of the rtc product.
  */
 @property (nonatomic, assign) NSInteger mccUid;
+/**
+ * The max number which the music content center caches cannot exceed 50.
+ */
+@property (nonatomic, assign) NSUInteger maxCacheSize;
 @end
 
 @protocol AgoraMusicPlayerProtocol <AgoraRtcMediaPlayerProtocol>
@@ -248,7 +310,7 @@ __attribute__((visibility("default"))) @interface AgoraMusicContentCenter : NSOb
  * @param config Configurations for the AgoraMusicContentCenter instance. For details, see AgoraMusicContentCenterConfig.
  * @return An shared instance of AgoraMusicContentCenter
 */
-+ (instancetype)sharedContentCenterWithConfig:(AgoraMusicContentCenterConfig *)config NS_SWIFT_NAME(sharedContentCenter(config:));
++ (instancetype _Nullable)sharedContentCenterWithConfig:(AgoraMusicContentCenterConfig *)config NS_SWIFT_NAME(sharedContentCenter(config:));
 
 /**
 *  Renew token of music content center
@@ -278,7 +340,7 @@ __attribute__((visibility("default"))) @interface AgoraMusicContentCenter : NSOb
  * - The pointer to an object who realize the AgoraMusicPlayerProtocol, if the method call succeeds.
  * - The empty pointer NULL, if the method call fails.
  */
-- (id<AgoraMusicPlayerProtocol>)createMusicPlayerWithDelegate:(id<AgoraRtcMediaPlayerDelegate>_Nullable)delegate NS_SWIFT_NAME(createMusicPlayer(delegate:));
+- (id<AgoraMusicPlayerProtocol>)createMusicPlayerWithDelegate:(id<AgoraRtcMediaPlayerDelegate> _Nullable)delegate NS_SWIFT_NAME(createMusicPlayer(delegate:));
 
 /**
  * Get music chart collection of music.If the method call success, get result from the AgoraMusicContentCenterEventDelegate  - (void)onMusicChartsResult:(NSString *)requestId status:(AgoraMusicContentCenterStatusCode)status result:(NSArray<AgoraMusicChartInfo*> *)result; match the callback  "requestId" parameter to get the  request result.
@@ -313,7 +375,7 @@ __attribute__((visibility("default"))) @interface AgoraMusicContentCenter : NSOb
  * Preload a media file with specified parameters.
  *
  * @param songCode The identify of the media file that you want to play.
- * @param option The ext param, default is null.
+ * @param jsonOption The ext param, default is null.
  * @return
  * - 0: Success.
  * - < 0: Failure.
@@ -331,10 +393,27 @@ __attribute__((visibility("default"))) @interface AgoraMusicContentCenter : NSOb
 - (NSInteger)isPreloadedWithSongCode:(NSInteger)songCode NS_SWIFT_NAME(isPreloaded(songCode:));
 
 /**
+ * Remove a media file cache
+ *
+ * @param songCode The identifier of the media file that you want to play.
+ * @return
+ * - 0: Success; the cached media file is removed.
+ * - < 0: Failure.
+ */
+- (NSInteger)removeCacheWithSongCode:(NSInteger)songCode NS_SWIFT_NAME(removeCache(songCode:));
+
+/**
+ * Get media cache files.
+ *
+ * @return The caches Array contains songCode and status of the music.
+ */
+- (NSArray *)getCaches NS_SWIFT_NAME(getCaches());
+
+/**
  * Get lyric of the song. get result from the AgoraMusicContentCenterEventDelegate  - (void)onLyricResult:(NSString*)requestId lyricUrl:(NSString*)lyricUrl;  match the callback  "requestId" parameter to get the  request result.
  *
  * @param songCode The identify of the media file that you want to play.
- * @param LyricType The type of the lyric file. may be 0:xml or 1:lrc.
+ * @param lyricType The type of the lyric file. may be 0:xml or 1:lrc.
  * @return The request identification
  */
 - (NSString *)getLyricWithSongCode:(NSInteger)songCode lyricType:(NSInteger)lyricType NS_SWIFT_NAME(getLyric(songCode:lyricType:));
