@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities">
+  <Identity Name="CreatospacePvt.Ltd..Creatospace" Version="${CI_VERSION}.0" Publisher="CN=C33B5411-0EA0-491C-81CC-016C8BB05AA0" ProcessorArchitecture="x64" />
+  <Properties>
+    <DisplayName>Creatospace</DisplayName>
+    <PublisherDisplayName>Creatospace Pvt. Ltd.</PublisherDisplayName>
+    <Description>Taking Your Communities to a Metaverse</Description>
+    <Logo>assets\Logo.png</Logo>
+  </Properties>
+  <Resources>
+    <Resource Language="en-us" />
+  </Resources>
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17135.0" MaxVersionTested="10.0.19045.0" />
+  </Dependencies>
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust"/>
+  </Capabilities>
+  <Applications>
+    <Application Id="Creatospace" Executable="Creatospace.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements BackgroundColor="#000000" DisplayName="Creatospace" Square150x150Logo="assets\logo150.png" Square44x44Logo="assets\logo44.png" Description="Taking Your Communities to a Metaverse" />
+    </Application>
+  </Applications>
+</Package>
