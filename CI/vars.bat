@@ -1,5 +1,6 @@
 @REM Unreal Engine Build
 echo ##CI_UE_HOME=%C:\Users\Saswat\Documents\GitHub\UnrealEngine%#
+echo ##CI_VERSION=1.0.0#
 
 @REM Windows Publishing
 echo ##APP_NAME=Creatospace#
@@ -12,6 +13,6 @@ echo ##MSIX_LOGO_150=logo150.png#
 echo ##MSIX_APPLOGO=Logo.png#
 echo ##MSIX_BGCOLOR_HEX=000000#
 echo ##PUBLISHER=Creatospace Pvt. Ltd.#
-echo ##PUBLISHER_ACCOUNT=CreatospacePvt.Ltd.#
+echo ##PUBLISHER_ACCOUNT=CreatospacePvt.Ltd#
 echo ##PUBLISHER_FAMILY=_a87s875vpx0vw#
 echo ##PUBLISHER_UUID=C33B5411-0EA0-491C-81CC-016C8BB05AA0#

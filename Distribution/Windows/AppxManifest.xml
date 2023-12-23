@@ -3,7 +3,7 @@
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities">
-  <Identity Name="CreatospacePvt.Ltd..Creatospace" Version="${CI_VERSION}.0" Publisher="CN=C33B5411-0EA0-491C-81CC-016C8BB05AA0" ProcessorArchitecture="x64" />
+  <Identity Name="CreatospacePvt.Ltd.Creatospace" Version="1.0.0.0" Publisher="CN=C33B5411-0EA0-491C-81CC-016C8BB05AA0" ProcessorArchitecture="x64" />
   <Properties>
     <DisplayName>Creatospace</DisplayName>
     <PublisherDisplayName>Creatospace Pvt. Ltd.</PublisherDisplayName>
