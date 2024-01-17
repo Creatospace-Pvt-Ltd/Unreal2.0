@@ -13,6 +13,6 @@ echo ##MSIX_LOGO_150=logo150.png#
 echo ##MSIX_APPLOGO=Logo.png#
 echo ##MSIX_BGCOLOR_HEX=000000#
 echo ##PUBLISHER=Creatospace Pvt. Ltd.#
-echo ##PUBLISHER_ACCOUNT=CreatospacePvt.Ltd#
+echo ##PUBLISHER_ACCOUNT=CreatospacePvt.Ltd.236F26DE9C#
 echo ##PUBLISHER_FAMILY=_a87s875vpx0vw#
 echo ##PUBLISHER_UUID=C33B5411-0EA0-491C-81CC-016C8BB05AA0#

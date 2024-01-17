@@ -203,6 +203,10 @@
 		{
 			"Name": "AndroidFileServer",
 			"Enabled": false
+		},
+		{
+			"Name": "AndroidMedia",
+			"Enabled": false
 		}
 	]
 }
