@@ -207,6 +207,10 @@
 		{
 			"Name": "AndroidMedia",
 			"Enabled": false
+		},
+		{
+			"Name": "AppsFlyerSDK",
+			"Enabled": false
 		}
 	]
 }

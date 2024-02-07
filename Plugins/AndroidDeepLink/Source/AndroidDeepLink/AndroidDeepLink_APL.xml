@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--Copyright Porret Gaming 2023, All Rights Reserved-->
+<!--Google Play Billing Additions-->
+<root xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:tools="http://schemas.android.com/tools">
+	<!--
+        Android and Gradle updates
+        This is the standard Gradle/Android configuration updates
+    -->
+
+    <!-- Initialisation -->
+	<init>
+		<log text="Android Deep Link Events init"/>
+    </init>
+
+    <!-- Add dependencies -->
+	<androidManifestUpdates>
+		<addPermission android:name="android.permission.INTERNET" />
+	</androidManifestUpdates>
+
+	
+    <!-- Import Additions -->
+	<gameActivityImportAdditions>
+        <insert>
+			import android.content.Intent;
+			import android.net.Uri;
+			import android.os.Bundle;
+			import android.widget.TextView;
+			import java.util.List;
+		</insert>
+	</gameActivityImportAdditions>
+
+    <!-- OnCreate Additions -->
+    <gameActivityOnCreateAdditions>
+		
+                <insert>
+                    <![CDATA[
+                        // Check if the activity was started by a deep link
+						Intent intent = getIntent();
+						if (Intent.ACTION_VIEW.equals(intent.getAction())) {
+							// Retrieve the deep link URL
+							storedDeepLink = intent.getDataString();
+						}
+                    ]]>
+                </insert>
+                
+            
+    </gameActivityOnCreateAdditions>
+
+
+<!-- optional updates applied to AndroidManifest.xml -->
+	<androidManifestUpdates>
+		<!-- update the GameActivity activity -->
+		<loopElements tag="activity">
+			<setStringFromAttribute result="activityName" tag="$" name="android:name"/>
+			<setBoolIsEqual result="bGameActivity" arg1="$S(activityName)" arg2="com.epicgames.unreal.GameActivity"/>
+			<if condition="bGameActivity">
+					<true>
+							<!-- Add App Tiles to manifest file. -->
+							<addElements tag="$">
+								<intent-filter>
+                                    <action android:name="android.intent.action.VIEW" />
+					                <category android:name="android.intent.category.DEFAULT" />
+					                <category android:name="android.intent.category.BROWSABLE" />
+					                <data android:scheme="https" android:host="beta.creatospace.com" />
+					            </intent-filter>
+							</addElements>
+					</true>
+			</if>
+		</loopElements>
+	</androidManifestUpdates>
+
+
+	<gameActivityClassAdditions>
+		<insert>
+			<![CDATA[
+    private static String storedDeepLink;
+
+	public static String AndroidGetDeepLink() {
+        return storedDeepLink;
+    }		
+		// public void AndroidThunkJava_GetDeepLink(String dlink) {
+		// 	dlink = getIntent().getData().toString();
+		// }
+		]]>
+		</insert>
+	</gameActivityClassAdditions>
+
+
+
+</root>
