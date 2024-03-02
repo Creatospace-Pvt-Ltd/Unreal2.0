@@ -8,7 +8,7 @@ public class Creatospace : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "HTTP", "Json", "OnlineSubsystem", "OnlineSubsystemUtils", "GameLiftServerSDK", "VoiceChat", });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "HTTP", "Json", "OnlineSubsystem", "OnlineSubsystemUtils", "GameLiftServerSDK", "VoiceChat", "AgoraPlugin", "AudioExtensions", "AudioExtensions" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "ReadyPlayerMe", "OnlineSubsystem", "OnlineSubsystemUtils", "VoiceChat" });
 

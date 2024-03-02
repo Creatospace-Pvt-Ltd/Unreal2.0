@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{2FBAB650-4554-463C-AFDF-46A1F7F513FB}",
+	"EngineAssociation": "{D761BBFE-43F0-C708-369E-ADB14400297D}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -205,12 +205,20 @@
 			"Enabled": false
 		},
 		{
-			"Name": "AndroidMedia",
+			"Name": "AppsFlyerSDK",
 			"Enabled": false
 		},
 		{
-			"Name": "AppsFlyerSDK",
-			"Enabled": false
+			"Name": "GPULightmass",
+			"Enabled": true
+		},
+		{
+			"Name": "OptionalMobileFeaturesBPLibrary",
+			"Enabled": true
+		},
+		{
+			"Name": "MediaMovieStreamer",
+			"Enabled": true
 		}
 	]
 }
