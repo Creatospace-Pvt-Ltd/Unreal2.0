@@ -123,7 +123,7 @@
 		},
 		{
 			"Name": "AnalyticsBlueprintLibrary",
-			"Enabled": false
+			"Enabled": true
 		},
 		{
 			"Name": "Omniverse",
@@ -209,16 +209,21 @@
 			"Enabled": false
 		},
 		{
-			"Name": "GPULightmass",
-			"Enabled": true
-		},
-		{
 			"Name": "OptionalMobileFeaturesBPLibrary",
 			"Enabled": true
 		},
 		{
 			"Name": "MediaMovieStreamer",
 			"Enabled": true
+		},
+		{
+			"Name": "AndroidMedia",
+			"Enabled": false
+		},
+		{
+			"Name": "GameAnalytics",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/d070c3fab7b74c08bab3a89c9cbf4490"
 		}
 	]
 }
