@@ -35,6 +35,7 @@ PackagedServer 2.0
 PackagedStandalone
 WindowsShipClient
 Distribution
+AndroidDevelopment
 .vscode
 .vs
 *.VC.db

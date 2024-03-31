@@ -224,6 +224,11 @@
 			"Name": "GameAnalytics",
 			"Enabled": true,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/d070c3fab7b74c08bab3a89c9cbf4490"
+		},
+		{
+			"Name": "DlFileManager",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/34df478b312a438cac9819ff0cf196fa"
 		}
 	]
 }
