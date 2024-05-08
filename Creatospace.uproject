@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{2FBAB650-4554-463C-AFDF-46A1F7F513FB}",
+	"EngineAssociation": "5.0",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -16,10 +16,6 @@
 		}
 	],
 	"Plugins": [
-		{
-			"Name": "WebBrowserWidget",
-			"Enabled": true
-		},
 		{
 			"Name": "ReadyPlayerMe",
 			"Enabled": true
@@ -229,6 +225,11 @@
 			"Name": "DlFileManager",
 			"Enabled": true,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/34df478b312a438cac9819ff0cf196fa"
+		},
+		{
+			"Name": "SocketIOClient",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/slug/socket-io-client"
 		}
 	]
 }

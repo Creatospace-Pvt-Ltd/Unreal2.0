@@ -131,7 +131,7 @@ namespace sio
     {
     public:
         
-        impl(client_impl_base *,std::string const&, message::ptr const&);
+        impl(client_impl_base *,std::string const&);
         ~impl();
         
         void on(std::string const& event_name,event_listener_aux const& func);
@@ -159,8 +159,6 @@ namespace sio
         void emit(std::string const& name, message::list const& msglist, std::function<void (message::list const&)> const& ack);
         
         std::string const& get_namespace() const {return m_nsp;}
-
-        std::string const& get_socket_id() const { return m_socket_id; }
         
     protected:
         void on_connected();
@@ -197,10 +195,7 @@ namespace sio
         sio::client_impl_base *m_client;
         
         bool m_connected;
-		std::string m_nsp;
-		message::ptr m_auth;
-
-        std::string m_socket_id;
+        std::string m_nsp;
         
         std::map<unsigned int, std::function<void (message::list const&)> > m_acks;
         
@@ -256,11 +251,10 @@ namespace sio
         m_error_listener = nullptr;
     }
     
-    socket::impl::impl(client_impl_base *client,std::string const& nsp, message::ptr const& auth):
+    socket::impl::impl(client_impl_base *client,std::string const& nsp):
         m_client(client),
         m_connected(false),
-        m_nsp(nsp),
-        m_auth(auth)
+        m_nsp(nsp)
     {
         NULL_GUARD(client);
         if(m_client->opened())
@@ -298,7 +292,7 @@ namespace sio
     void socket::impl::send_connect()
     {
         NULL_GUARD(m_client);
-        packet p(packet::type_connect, m_nsp, m_auth);
+        packet p(packet::type_connect,m_nsp);
         m_client->send(p);
         m_connection_timer.reset(new asio::system_timer(m_client->get_io_service()));
         lib::error_code ec;
@@ -311,7 +305,7 @@ namespace sio
         NULL_GUARD(m_client);
         if(m_connected)
         {
-            packet p(packet::type_disconnect, m_nsp);
+            packet p(packet::type_disconnect,m_nsp);
             send_packet(p);
             
             if(!m_connection_timer)
@@ -402,13 +396,6 @@ namespace sio
             case packet::type_connect:
             {
                 LOG("Received Message type (Connect)"<<std::endl);
-
-				const object_message* obj_ptr = static_cast<const object_message*>(p.get_message().get());
-				const map<string, message::ptr>* values = &(obj_ptr->get_map());
-				auto it = values->find("sid");
-				if (it != values->end()) {
-                    m_socket_id = static_pointer_cast<string_message>(it->second)->get_string();
-				}
 
                 this->on_connected();
                 break;
@@ -559,8 +546,8 @@ namespace sio
         return socket::event_listener();
     }
     
-    socket::socket(client_impl_base* client,std::string const& nsp,message::ptr const& auth):
-        m_impl(new impl(client,nsp,auth))
+    socket::socket(client_impl_base* client,std::string const& nsp):
+        m_impl(new impl(client,nsp))
     {
     }
     
@@ -614,17 +601,12 @@ namespace sio
         return m_impl->get_namespace();
     }
     
-	std::string const& socket::get_socket_id() const
-	{
-        return m_impl->get_socket_id();
-	}
-
-	void socket::on_connected()
-	{
+    void socket::on_connected()
+    {
         m_impl->on_connected();
-	}
-
-	void socket::on_close()
+    }
+    
+    void socket::on_close()
     {
         m_impl->on_close();
     }

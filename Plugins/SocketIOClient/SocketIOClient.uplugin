@@ -1,26 +1,24 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "2.4.0",
-	"EngineVersion": "5.0.0",
+	"VersionName": "2.1.0",
 	"FriendlyName": "Socket.IO Client",
-	"Description": "Real-time WebSocket networking via Socket.IO protocol usable from blueprints and c++.",
+	"Description": "Real-time networking library Socket.IO Client usable from blueprints and c++.",
 	"Category": "Networking",
 	"CreatedBy": "Getnamo",
 	"CreatedByURL": "http://getnamo.com",
-	"DocsURL": "https://github.com/getnamo/SocketIOClient-Unreal",
+	"DocsURL": "https://github.com/getnamo/socketio-client-ue4",
 	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/slug/socket-io-client",
-	"SupportURL": "https://github.com/getnamo/SocketIOClient-Unreal/issues",
-	"EnabledByDefault": true,
+	"SupportURL": "https://github.com/getnamo/socketio-client-ue4",
+	"EngineVersion": "5.0.0",
 	"CanContainContent": false,
-	"IsBetaVersion": false,
-	"Installed": false,
+	"Installed": true,
 	"Modules": [
 		{
 			"Name": "SocketIOClient",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [
+			"PlatformAllowList": [
 				"Win64",
 				"Linux",
 				"Mac",
@@ -32,7 +30,7 @@
 			"Name": "SIOJson",
 			"Type": "Runtime",
 			"LoadingPhase": "PreDefault",
-			"WhitelistPlatforms": [
+			"PlatformAllowList": [
 				"Win64",
 				"Linux",
 				"Mac",
@@ -44,7 +42,7 @@
 			"Name": "SocketIOLib",
 			"Type": "Runtime",
 			"LoadingPhase": "PreDefault",
-			"WhitelistPlatforms": [
+			"PlatformAllowList": [
 				"Win64",
 				"Linux",
 				"Mac",
@@ -56,7 +54,7 @@
 			"Name": "CoreUtility",
 			"Type": "Runtime",
 			"LoadingPhase": "PreDefault",
-			"WhitelistPlatforms": [
+			"PlatformAllowList": [
 				"Win64",
 				"Linux",
 				"Mac",
@@ -68,7 +66,7 @@
 			"Name": "SIOJEditorPlugin",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [
+			"PlatformAllowList": [
 				"Win64",
 				"Linux",
 				"Mac"
