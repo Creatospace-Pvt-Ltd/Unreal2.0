@@ -9,7 +9,6 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"WebBrowserWidget",
 				"CoreUObject",
 				"Engine"
 			]
@@ -18,6 +17,10 @@
 	"Plugins": [
 		{
 			"Name": "ReadyPlayerMe",
+			"Enabled": true
+		},
+		{
+			"Name": "WebBrowserWidget",
 			"Enabled": true
 		},
 		{
@@ -201,10 +204,6 @@
 			"Enabled": false
 		},
 		{
-			"Name": "AppsFlyerSDK",
-			"Enabled": false
-		},
-		{
 			"Name": "OptionalMobileFeaturesBPLibrary",
 			"Enabled": true
 		},
@@ -215,6 +214,11 @@
 		{
 			"Name": "AndroidMedia",
 			"Enabled": false
+		},
+		{
+			"Name": "AgoraPlugin",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/4976717f4e9847d8b161f7c5adb4c1a9"
 		},
 		{
 			"Name": "GameAnalytics",
